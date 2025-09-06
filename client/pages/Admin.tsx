@@ -17,6 +17,9 @@ export default function Admin() {
   const [packs, setPacks] = useState<PackDoc[]>([]);
   const [selected, setSelected] = useState<string>("");
   const [editing, setEditing] = useState<Record<string, string>>({});
+  const [model, setModel] = useState<"LFP6" | "LFP9">("LFP9");
+  const [batch, setBatch] = useState("001");
+  const [nextSerial, setNextSerial] = useState("");
 
   useEffect(() => {
     if (localStorage.getItem("auth_role") !== "admin") {
