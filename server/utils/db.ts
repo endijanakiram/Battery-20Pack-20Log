@@ -17,8 +17,14 @@ export interface PackDoc {
   };
 }
 
+export interface Config {
+  model: "LFP6" | "LFP9";
+  batch: string; // 3-digit string
+}
+
 export interface BatteryDB {
   packs: Record<string, PackDoc>;
+  config: Config;
 }
 
 export function ensureDataDirs() {
@@ -28,18 +34,20 @@ export function ensureDataDirs() {
 
 export function readDB(): BatteryDB {
   ensureDataDirs();
+  const defaultCfg: Config = { model: "LFP9", batch: "001" };
   if (!fs.existsSync(DB_PATH)) {
-    const empty: BatteryDB = { packs: {} };
+    const empty: BatteryDB = { packs: {}, config: defaultCfg };
     fs.writeFileSync(DB_PATH, JSON.stringify(empty, null, 2));
     return empty;
   }
   const raw = fs.readFileSync(DB_PATH, "utf8");
   try {
     const parsed = JSON.parse(raw) as BatteryDB;
-    if (!parsed.packs) return { packs: {} };
+    if (!parsed.packs) parsed.packs = {} as any;
+    if (!parsed.config) parsed.config = defaultCfg;
     return parsed;
   } catch {
-    return { packs: {} };
+    return { packs: {}, config: defaultCfg };
   }
 }
 
