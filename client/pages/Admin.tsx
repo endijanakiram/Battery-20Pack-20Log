@@ -9,7 +9,7 @@ interface PackDoc {
   created_at: string;
   created_by: string | null;
   modules: Record<string, string[]>;
-  codes: { module1: string; module2: string; master: string };
+  codes: Record<string, string>;
 }
 
 export default function Admin() {
