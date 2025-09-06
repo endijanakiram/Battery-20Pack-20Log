@@ -1,0 +1,146 @@
+import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
+
+interface PackDoc {
+  pack_serial: string;
+  created_at: string;
+  created_by: string | null;
+  modules: Record<string, string[]>;
+  codes: { module1: string; module2: string; master: string };
+}
+
+export default function Admin() {
+  const nav = useNavigate();
+  const [packs, setPacks] = useState<PackDoc[]>([]);
+  const [selected, setSelected] = useState<string>("");
+  const [editing, setEditing] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (localStorage.getItem("auth_role") !== "admin") {
+      nav("/");
+      return;
+    }
+    load();
+  }, []);
+
+  async function load() {
+    const res = await fetch("/api/packs");
+    const j = await res.json();
+    const list: PackDoc[] = j.packs || [];
+    setPacks(list);
+    if (list.length && !selected) setSelected(list[0].pack_serial);
+  }
+
+  const total = useMemo(() => packs.length, [packs]);
+  const current = useMemo(() => packs.find((p) => p.pack_serial === selected) || null, [packs, selected]);
+
+  useEffect(() => {
+    if (current) {
+      const map: Record<string, string> = {};
+      for (const [mid, cells] of Object.entries(current.modules)) {
+        map[mid] = cells.join("\n");
+      }
+      setEditing(map);
+    }
+  }, [current?.pack_serial]);
+
+  async function saveEdits() {
+    if (!current) return;
+    const modules: Record<string, string[]> = {};
+    for (const [mid, text] of Object.entries(editing)) {
+      modules[mid] = text.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+    }
+    const res = await fetch(`/api/packs/${encodeURIComponent(current.pack_serial)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ modules }),
+    });
+    if (res.ok) load();
+  }
+
+  async function deletePack() {
+    if (!current) return;
+    if (!confirm(`Delete pack ${current.pack_serial}?`)) return;
+    const res = await fetch(`/api/packs/${encodeURIComponent(current.pack_serial)}`, { method: "DELETE" });
+    if (res.ok) {
+      await load();
+      setSelected("");
+    }
+  }
+
+  function printImage(url: string) {
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write(`<html><head><title>Print</title></head><body style="margin:0"><img src="${url}" onload="window.print();window.close();" /></body></html>`);
+    w.document.close();
+  }
+
+  return (
+    <div className="min-h-screen bg-white">
+      <header className="sticky top-0 z-10 border-b bg-white px-4 py-3 flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-emerald-700">Admin</h1>
+          <p className="text-xs text-slate-500">Total packs: {total}</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={load}>Refresh</Button>
+          <Button variant="ghost" onClick={() => { localStorage.removeItem("auth_role"); nav("/"); }}>Sign out</Button>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-4 py-6 grid grid-cols-1 md:grid-cols-12 gap-6">
+        <aside className="md:col-span-4 border rounded p-3 bg-slate-50">
+          <h3 className="font-semibold mb-2">Packs</h3>
+          <div className="space-y-2 max-h-[60vh] overflow-auto">
+            {packs.map((p) => (
+              <button key={p.pack_serial} className={`w-full text-left rounded px-3 py-2 border ${selected === p.pack_serial ? "bg-emerald-100 border-emerald-300" : "bg-white hover:bg-slate-50"}`} onClick={() => setSelected(p.pack_serial)}>
+                <div className="font-medium">{p.pack_serial}</div>
+                <div className="text-xs text-slate-500">{new Date(p.created_at).toLocaleString()} · {p.created_by || "—"}</div>
+              </button>
+            ))}
+          </div>
+        </aside>
+
+        <section className="md:col-span-8">
+          {current ? (
+            <div>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Edit {current.pack_serial}</h2>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={saveEdits}>Save</Button>
+                  <Button variant="destructive" onClick={deletePack}>Delete</Button>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                {Object.keys(current.modules).map((mid) => (
+                  <div key={mid} className="border rounded p-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium">{mid}</h3>
+                      <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => printImage(current.codes.module1)}>Print Mod 1</Button>
+                        <Button variant="outline" onClick={() => printImage(current.codes.module2)}>Print Mod 2</Button>
+                      </div>
+                    </div>
+                    <Textarea className="mt-2" rows={10} value={editing[mid] || ""} onChange={(e) => setEditing((s) => ({ ...s, [mid]: e.target.value }))} />
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 border rounded p-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium">Master</h3>
+                  <Button variant="outline" onClick={() => printImage(current.codes.master)}>Print Master</Button>
+                </div>
+                <div className="text-xs text-slate-500 mt-2">Use the Print buttons to print individual codes at exact size.</div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-slate-500">Select a pack to edit</div>
+          )}
+        </section>
+      </main>
+    </div>
+  );
+}
