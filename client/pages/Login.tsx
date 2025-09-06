@@ -30,22 +30,49 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-slate-50 p-4">
       <div className="w-full max-w-md rounded-lg border bg-white p-6 shadow">
-        <h1 className="text-xl font-bold text-emerald-700">Battery Pack Data Log</h1>
+        <h1 className="text-xl font-bold text-emerald-700">
+          Battery Pack Data Log
+        </h1>
         <p className="text-xs text-slate-500">Sign in to continue</p>
         <div className="mt-4 flex rounded-md border p-1">
-          <button className={`flex-1 rounded px-3 py-2 text-sm ${mode === "operator" ? "bg-emerald-600 text-white" : "hover:bg-slate-50"}`} onClick={() => setMode("operator")}>Operator</button>
-          <button className={`flex-1 rounded px-3 py-2 text-sm ${mode === "admin" ? "bg-emerald-600 text-white" : "hover:bg-slate-50"}`} onClick={() => setMode("admin")}>Admin</button>
+          <button
+            className={`flex-1 rounded px-3 py-2 text-sm ${mode === "operator" ? "bg-emerald-600 text-white" : "hover:bg-slate-50"}`}
+            onClick={() => setMode("operator")}
+          >
+            Operator
+          </button>
+          <button
+            className={`flex-1 rounded px-3 py-2 text-sm ${mode === "admin" ? "bg-emerald-600 text-white" : "hover:bg-slate-50"}`}
+            onClick={() => setMode("admin")}
+          >
+            Admin
+          </button>
         </div>
         <div className="mt-4">
-          <label className="text-sm font-medium">{mode === "admin" ? "Email" : "User ID"}</label>
-          <Input className="mt-1" value={user} onChange={(e) => setUser(e.target.value)} />
+          <label className="text-sm font-medium">
+            {mode === "admin" ? "Email" : "User ID"}
+          </label>
+          <Input
+            className="mt-1"
+            value={user}
+            onChange={(e) => setUser(e.target.value)}
+          />
         </div>
         <div className="mt-3">
           <label className="text-sm font-medium">Password</label>
-          <Input className="mt-1" type="password" value={pass} onChange={(e) => setPass(e.target.value)} />
+          <Input
+            className="mt-1"
+            type="password"
+            value={pass}
+            onChange={(e) => setPass(e.target.value)}
+          />
         </div>
-        <Button className="mt-5 w-full" onClick={handleLogin}>Sign in</Button>
-        <p className="mt-3 text-xs text-slate-500">Operator: user / 123456 · Admin: nxrivot@gmail.com / NX100@123</p>
+        <Button className="mt-5 w-full" onClick={handleLogin}>
+          Sign in
+        </Button>
+        <p className="mt-3 text-xs text-slate-500">
+          Operator: user / 123456 · Admin: nxrivot@gmail.com / NX100@123
+        </p>
       </div>
     </div>
   );

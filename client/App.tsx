@@ -13,7 +13,13 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function Guard({ role, children }: { role: "operator" | "admin"; children: JSX.Element }) {
+function Guard({
+  role,
+  children,
+}: {
+  role: "operator" | "admin";
+  children: JSX.Element;
+}) {
   const ok = localStorage.getItem("auth_role") === role;
   if (!ok) return <Login />;
   return children;
@@ -27,8 +33,22 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/dashboard" element={<Guard role="operator"><Dashboard /></Guard>} />
-          <Route path="/admin" element={<Guard role="admin"><Admin /></Guard>} />
+          <Route
+            path="/dashboard"
+            element={
+              <Guard role="operator">
+                <Dashboard />
+              </Guard>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <Guard role="admin">
+                <Admin />
+              </Guard>
+            }
+          />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

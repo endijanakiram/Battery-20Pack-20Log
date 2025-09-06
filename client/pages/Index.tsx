@@ -203,13 +203,16 @@ export default function Index() {
   function printImage(url: string) {
     const w = window.open("", "_blank");
     if (!w) return;
-    w.document.write(`<html><head><title>Print</title></head><body style="margin:0"><img src="${url}" onload="window.print();window.close();" /></body></html>`);
+    w.document.write(
+      `<html><head><title>Print</title></head><body style="margin:0"><img src="${url}" onload="window.print();window.close();" /></body></html>`,
+    );
     w.document.close();
   }
 
   const brand = {
     title: "Battery Pack Data Log",
-    subtitle: "Generate modules, enforce uniqueness, and print 25×50 mm codes @ 240 DPI",
+    subtitle:
+      "Generate modules, enforce uniqueness, and print 25×50 mm codes @ 240 DPI",
   };
 
   return (
@@ -375,34 +378,64 @@ export default function Index() {
           <section className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             {lastFiles.module1 && (
               <figure className="border rounded p-3 bg-white shadow-sm">
-                <img src={lastFiles.module1} alt="module1 code" className="mx-auto" />
+                <img
+                  src={lastFiles.module1}
+                  alt="module1 code"
+                  className="mx-auto"
+                />
                 <figcaption className="mt-2 text-center text-xs break-all">
                   {lastFiles.module1.split("/").pop()}
                 </figcaption>
                 <div className="mt-2 flex justify-center">
-                  <Button variant="outline" size="sm" onClick={() => printImage(lastFiles.module1!)}>Print Mod 1</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => printImage(lastFiles.module1!)}
+                  >
+                    Print Mod 1
+                  </Button>
                 </div>
               </figure>
             )}
             {lastFiles.module2 && (
               <figure className="border rounded p-3 bg-white shadow-sm">
-                <img src={lastFiles.module2} alt="module2 code" className="mx-auto" />
+                <img
+                  src={lastFiles.module2}
+                  alt="module2 code"
+                  className="mx-auto"
+                />
                 <figcaption className="mt-2 text-center text-xs break-all">
                   {lastFiles.module2.split("/").pop()}
                 </figcaption>
                 <div className="mt-2 flex justify-center">
-                  <Button variant="outline" size="sm" onClick={() => printImage(lastFiles.module2!)}>Print Mod 2</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => printImage(lastFiles.module2!)}
+                  >
+                    Print Mod 2
+                  </Button>
                 </div>
               </figure>
             )}
             {lastFiles.master && (
               <figure className="border rounded p-3 bg-white shadow-sm">
-                <img src={lastFiles.master} alt="master code" className="mx-auto" />
+                <img
+                  src={lastFiles.master}
+                  alt="master code"
+                  className="mx-auto"
+                />
                 <figcaption className="mt-2 text-center text-xs break-all">
                   {lastFiles.master.split("/").pop()}
                 </figcaption>
                 <div className="mt-2 flex justify-center">
-                  <Button variant="outline" size="sm" onClick={() => printImage(lastFiles.master!)}>Print Master</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => printImage(lastFiles.master!)}
+                  >
+                    Print Master
+                  </Button>
                 </div>
               </figure>
             )}
@@ -485,7 +518,8 @@ export default function Index() {
         {/* Help */}
         <section className="mt-10 text-xs text-slate-500">
           <p>
-            Label printing spec: 25×50 mm at 240 DPI. Generated PNGs target ~236×472 px canvas. Use per-code Print buttons for exact sizing.
+            Label printing spec: 25×50 mm at 240 DPI. Generated PNGs target
+            ~236×472 px canvas. Use per-code Print buttons for exact sizing.
           </p>
         </section>
       </main>

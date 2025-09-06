@@ -66,7 +66,10 @@ export default function Admin() {
   }
 
   const total = useMemo(() => packs.length, [packs]);
-  const current = useMemo(() => packs.find((p) => p.pack_serial === selected) || null, [packs, selected]);
+  const current = useMemo(
+    () => packs.find((p) => p.pack_serial === selected) || null,
+    [packs, selected],
+  );
 
   useEffect(() => {
     if (current) {
@@ -82,20 +85,29 @@ export default function Admin() {
     if (!current) return;
     const modules: Record<string, string[]> = {};
     for (const [mid, text] of Object.entries(editing)) {
-      modules[mid] = text.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+      modules[mid] = text
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean);
     }
-    const res = await fetch(`/api/packs/${encodeURIComponent(current.pack_serial)}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ modules }),
-    });
+    const res = await fetch(
+      `/api/packs/${encodeURIComponent(current.pack_serial)}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modules }),
+      },
+    );
     if (res.ok) load();
   }
 
   async function deletePack() {
     if (!current) return;
     if (!confirm(`Delete pack ${current.pack_serial}?`)) return;
-    const res = await fetch(`/api/packs/${encodeURIComponent(current.pack_serial)}`, { method: "DELETE" });
+    const res = await fetch(
+      `/api/packs/${encodeURIComponent(current.pack_serial)}`,
+      { method: "DELETE" },
+    );
     if (res.ok) {
       await load();
       setSelected("");
@@ -105,7 +117,9 @@ export default function Admin() {
   function printImage(url: string) {
     const w = window.open("", "_blank");
     if (!w) return;
-    w.document.write(`<html><head><title>Print</title></head><body style="margin:0"><img src="${url}" onload="window.print();window.close();" /></body></html>`);
+    w.document.write(
+      `<html><head><title>Print</title></head><body style="margin:0"><img src="${url}" onload="window.print();window.close();" /></body></html>`,
+    );
     w.document.close();
   }
 
@@ -117,8 +131,18 @@ export default function Admin() {
           <p className="text-xs text-slate-500">Total packs: {total}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={load}>Refresh</Button>
-          <Button variant="ghost" onClick={() => { localStorage.removeItem("auth_role"); nav("/"); }}>Sign out</Button>
+          <Button variant="outline" onClick={load}>
+            Refresh
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              localStorage.removeItem("auth_role");
+              nav("/");
+            }}
+          >
+            Sign out
+          </Button>
         </div>
       </header>
 
@@ -129,30 +153,52 @@ export default function Admin() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-sm font-medium">Model</label>
-                <select className="mt-1 w-full border rounded px-2 py-2" value={model} onChange={(e) => setModel(e.target.value as any)}>
+                <select
+                  className="mt-1 w-full border rounded px-2 py-2"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value as any)}
+                >
                   <option value="LFP6">LFP6</option>
                   <option value="LFP9">LFP9</option>
                 </select>
               </div>
               <div>
                 <label className="text-sm font-medium">Batch (3 digits)</label>
-                <input className="mt-1 w-full border rounded px-2 py-2" value={batch} onChange={(e) => setBatch(e.target.value)} maxLength={3} />
+                <input
+                  className="mt-1 w-full border rounded px-2 py-2"
+                  value={batch}
+                  onChange={(e) => setBatch(e.target.value)}
+                  maxLength={3}
+                />
               </div>
             </div>
             <div className="mt-3 flex gap-2">
-              <Button variant="outline" onClick={saveConfig}>Save Config</Button>
-              <Button variant="ghost" onClick={previewNext}>Preview Next</Button>
+              <Button variant="outline" onClick={saveConfig}>
+                Save Config
+              </Button>
+              <Button variant="ghost" onClick={previewNext}>
+                Preview Next
+              </Button>
             </div>
-            <div className="mt-2 text-xs text-slate-600">Next pack serial: <b>{nextSerial}</b></div>
+            <div className="mt-2 text-xs text-slate-600">
+              Next pack serial: <b>{nextSerial}</b>
+            </div>
           </div>
 
           <div className="border rounded p-3 bg-slate-50">
             <h3 className="font-semibold mb-2">Packs</h3>
             <div className="space-y-2 max-h-[50vh] overflow-auto">
               {packs.map((p) => (
-                <button key={p.pack_serial} className={`w-full text-left rounded px-3 py-2 border ${selected === p.pack_serial ? "bg-emerald-100 border-emerald-300" : "bg-white hover:bg-slate-50"}`} onClick={() => setSelected(p.pack_serial)}>
+                <button
+                  key={p.pack_serial}
+                  className={`w-full text-left rounded px-3 py-2 border ${selected === p.pack_serial ? "bg-emerald-100 border-emerald-300" : "bg-white hover:bg-slate-50"}`}
+                  onClick={() => setSelected(p.pack_serial)}
+                >
                   <div className="font-medium">{p.pack_serial}</div>
-                  <div className="text-xs text-slate-500">{new Date(p.created_at).toLocaleString()} · {p.created_by || "—"}</div>
+                  <div className="text-xs text-slate-500">
+                    {new Date(p.created_at).toLocaleString()} ·{" "}
+                    {p.created_by || "—"}
+                  </div>
                 </button>
               ))}
             </div>
@@ -163,10 +209,16 @@ export default function Admin() {
           {current ? (
             <div>
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Edit {current.pack_serial}</h2>
+                <h2 className="text-lg font-semibold">
+                  Edit {current.pack_serial}
+                </h2>
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={saveEdits}>Save</Button>
-                  <Button variant="destructive" onClick={deletePack}>Delete</Button>
+                  <Button variant="outline" onClick={saveEdits}>
+                    Save
+                  </Button>
+                  <Button variant="destructive" onClick={deletePack}>
+                    Delete
+                  </Button>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -175,20 +227,44 @@ export default function Admin() {
                     <div className="flex items-center justify-between">
                       <h3 className="font-medium">{mid}</h3>
                       <div className="flex gap-2">
-                        <Button variant="outline" onClick={() => printImage(current.codes.module1)}>Print Mod 1</Button>
-                        <Button variant="outline" onClick={() => printImage(current.codes.module2)}>Print Mod 2</Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => printImage(current.codes.module1)}
+                        >
+                          Print Mod 1
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => printImage(current.codes.module2)}
+                        >
+                          Print Mod 2
+                        </Button>
                       </div>
                     </div>
-                    <Textarea className="mt-2" rows={10} value={editing[mid] || ""} onChange={(e) => setEditing((s) => ({ ...s, [mid]: e.target.value }))} />
+                    <Textarea
+                      className="mt-2"
+                      rows={10}
+                      value={editing[mid] || ""}
+                      onChange={(e) =>
+                        setEditing((s) => ({ ...s, [mid]: e.target.value }))
+                      }
+                    />
                   </div>
                 ))}
               </div>
               <div className="mt-4 border rounded p-3">
                 <div className="flex items-center justify-between">
                   <h3 className="font-medium">Master</h3>
-                  <Button variant="outline" onClick={() => printImage(current.codes.master)}>Print Master</Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => printImage(current.codes.master)}
+                  >
+                    Print Master
+                  </Button>
                 </div>
-                <div className="text-xs text-slate-500 mt-2">Use the Print buttons to print individual codes at exact size.</div>
+                <div className="text-xs text-slate-500 mt-2">
+                  Use the Print buttons to print individual codes at exact size.
+                </div>
               </div>
             </div>
           ) : (

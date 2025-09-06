@@ -79,7 +79,7 @@ function nextPackSerial(db: BatteryDB): string {
       }
     }
   }
-  const next = (maxUnit + 1) || 1;
+  const next = maxUnit + 1 || 1;
   return `${prefix}${String(next).padStart(4, "0")}`;
 }
 
@@ -101,12 +101,17 @@ export const generatePack: RequestHandler = async (req, res) => {
   };
 
   const db = readDB();
-  const finalPackSerial = pack_serial && pack_serial.trim().length ? pack_serial.trim() : nextPackSerial(db);
+  const finalPackSerial =
+    pack_serial && pack_serial.trim().length
+      ? pack_serial.trim()
+      : nextPackSerial(db);
 
   const m1 = normalizeLines(module1_cells || "");
   const m2 = normalizeLines(module2_cells || "");
   if (m1.length === 0 || m2.length === 0) {
-    return res.status(400).json({ error: "Both module cell lists are required" });
+    return res
+      .status(400)
+      .json({ error: "Both module cell lists are required" });
   }
 
   // Check duplicates inside each module
@@ -174,7 +179,12 @@ export const generatePack: RequestHandler = async (req, res) => {
       },
     });
   } catch (err: any) {
-    return res.status(500).json({ error: "Failed to generate codes", detail: String(err?.message || err) });
+    return res
+      .status(500)
+      .json({
+        error: "Failed to generate codes",
+        detail: String(err?.message || err),
+      });
   }
 };
 
@@ -217,10 +227,18 @@ export const getConfig: RequestHandler = (_req, res) => {
 };
 
 export const updateConfig: RequestHandler = (req, res) => {
-  const { model, batch } = req.body as { model?: "LFP6" | "LFP9"; batch?: string };
-  if (batch && !/^\d{1,3}$/.test(batch)) return res.status(400).json({ error: "batch must be 1-3 digits" });
-  if (model && model !== "LFP6" && model !== "LFP9") return res.status(400).json({ error: "model must be LFP6 or LFP9" });
-  const cfg = writeConfig({ model, batch: batch ? batch.padStart(3, "0") : undefined });
+  const { model, batch } = req.body as {
+    model?: "LFP6" | "LFP9";
+    batch?: string;
+  };
+  if (batch && !/^\d{1,3}$/.test(batch))
+    return res.status(400).json({ error: "batch must be 1-3 digits" });
+  if (model && model !== "LFP6" && model !== "LFP9")
+    return res.status(400).json({ error: "model must be LFP6 or LFP9" });
+  const cfg = writeConfig({
+    model,
+    batch: batch ? batch.padStart(3, "0") : undefined,
+  });
   res.json(cfg);
 };
 
@@ -254,12 +272,10 @@ export const generateMasterOnly: RequestHandler = async (req, res) => {
     writeDB(db);
     return res.json({ ok: true, master: files.masterUrl, pack });
   } catch (err: any) {
-    return res
-      .status(500)
-      .json({
-        error: "Failed to generate master code",
-        detail: String(err?.message || err),
-      });
+    return res.status(500).json({
+      error: "Failed to generate master code",
+      detail: String(err?.message || err),
+    });
   }
 };
 

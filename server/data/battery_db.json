@@ -62,5 +62,9 @@
         "master": "/files/codes/RIV2509LFP60010001_MASTER_code_20mm.png"
       }
     }
+  },
+  "config": {
+    "model": "LFP9",
+    "batch": "001"
   }
 }
