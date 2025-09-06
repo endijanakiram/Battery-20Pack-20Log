@@ -103,7 +103,7 @@ export const generatePack: RequestHandler = async (req, res) => {
 
   const m1 = normalizeLines(module1_cells || "");
   const m2 = normalizeLines((module2_cells as string) || "");
-  const m3 = normalizeLines((module3_cells as string) || "");
+  const m3 = normalizeLines(((req.body as any).module3_cells as string) || "");
   if (requiredCount >= 1 && m1.length === 0)
     return res.status(400).json({ error: "Module 1 cell list is required" });
   if (requiredCount >= 2 && m2.length === 0)
