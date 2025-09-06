@@ -56,6 +56,18 @@ export function writeDB(db: BatteryDB) {
   fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
 }
 
+export function readConfig() {
+  const db = readDB();
+  return db.config;
+}
+
+export function writeConfig(partial: Partial<Config>) {
+  const db = readDB();
+  db.config = { ...db.config, ...partial } as Config;
+  writeDB(db);
+  return db.config;
+}
+
 export function getAllModuleIds(db: BatteryDB): Set<string> {
   const set = new Set<string>();
   for (const pack of Object.values(db.packs)) {
