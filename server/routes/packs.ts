@@ -96,22 +96,30 @@ export const generatePack: RequestHandler = async (req, res) => {
       ? pack_serial.trim()
       : nextPackSerial(db);
 
+  const cfg = readConfig();
+  const enabled = cfg.modulesEnabled || { m1: true, m2: true, m3: false };
+  const requiredCount = enabled.m1 && enabled.m2 && enabled.m3 ? 3 : enabled.m1 && enabled.m2 ? 2 : 1;
+
   const m1 = normalizeLines(module1_cells || "");
-  const m2 = normalizeLines(module2_cells || "");
-  if (m1.length === 0 || m2.length === 0) {
-    return res
-      .status(400)
-      .json({ error: "Both module cell lists are required" });
-  }
+  const m2 = normalizeLines((module2_cells as string) || "");
+  const m3 = normalizeLines((module3_cells as string) || "");
+  if (requiredCount >= 1 && m1.length === 0)
+    return res.status(400).json({ error: "Module 1 cell list is required" });
+  if (requiredCount >= 2 && m2.length === 0)
+    return res.status(400).json({ error: "Module 2 cell list is required" });
+  if (requiredCount >= 3 && m3.length === 0)
+    return res.status(400).json({ error: "Module 3 cell list is required" });
 
   // Check duplicates inside each module
   const dup1 = duplicatesInArray(m1);
   const dup2 = duplicatesInArray(m2);
-  if (dup1.length || dup2.length) {
+  const dup3 = duplicatesInArray(m3);
+  if (dup1.length || dup2.length || dup3.length) {
     return res.status(409).json({
       error: "Duplicate cells within module",
       module1_duplicates: dup1,
       module2_duplicates: dup2,
+      module3_duplicates: dup3,
     });
   }
 
@@ -123,7 +131,7 @@ export const generatePack: RequestHandler = async (req, res) => {
   // Check duplicates across DB
   const allCells = getAllCells(db);
   const conflicts: { cell: string; pack: string; module: string }[] = [];
-  for (const cell of [...m1, ...m2]) {
+  for (const cell of [...m1, ...m2, ...m3]) {
     const hit = allCells.get(cell);
     if (hit) conflicts.push({ cell, pack: hit.pack, module: hit.module });
   }
@@ -131,32 +139,30 @@ export const generatePack: RequestHandler = async (req, res) => {
     return res.status(409).json({ error: "Duplicate cells in DB", conflicts });
   }
 
-  const { module1Id, module2Id } = nextModuleIds(db, finalPackSerial);
+  const ids = allocateModuleIds(db, requiredCount);
 
   const createdAt = new Date().toISOString();
 
   try {
-    const files = await generateCodes(
+    const bundle = await generateCodes(
       code_type || "barcode",
-      module1Id,
-      module2Id,
+      ids,
       finalPackSerial,
       createdAt,
     );
+
+    const modules: Record<string, string[]> = {};
+    const codes: Record<string, string> = { master: bundle.masterUrl };
+    if (requiredCount >= 1) { modules[ids[0]] = m1; codes[ids[0]] = bundle.moduleUrls[ids[0]]; }
+    if (requiredCount >= 2) { modules[ids[1]] = m2; codes[ids[1]] = bundle.moduleUrls[ids[1]]; }
+    if (requiredCount >= 3) { modules[ids[2]] = m3; codes[ids[2]] = bundle.moduleUrls[ids[2]]; }
 
     const doc: PackDoc = {
       pack_serial: finalPackSerial,
       created_at: createdAt,
       created_by: operator || null,
-      modules: {
-        [module1Id]: m1,
-        [module2Id]: m2,
-      },
-      codes: {
-        module1: files.module1Url,
-        module2: files.module2Url,
-        master: files.masterUrl,
-      },
+      modules,
+      codes,
     };
 
     db.packs[finalPackSerial] = doc;
@@ -165,11 +171,7 @@ export const generatePack: RequestHandler = async (req, res) => {
     return res.json({
       ok: true,
       pack: doc,
-      files: {
-        module1: files.module1Url,
-        module2: files.module2Url,
-        master: files.masterUrl,
-      },
+      files: { modules: bundle.moduleUrls, master: bundle.masterUrl },
     });
   } catch (err: any) {
     return res
