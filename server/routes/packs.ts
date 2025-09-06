@@ -20,41 +20,40 @@ function normalizeLines(input: string): string[] {
 
 function nextModuleIds(
   db: BatteryDB,
-  packSerial: string,
+  _packSerial: string,
 ): { module1Id: string; module2Id: string } {
-  const match = packSerial.match(/^(\D*)(\d+)$/);
+  // New module serial format: MLFP + DDYY + NNNNN (auto-increment per day)
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, "0");
+  const yy = String(now.getFullYear()).slice(-2);
+  const prefix = `MLFP${dd}${yy}`; // e.g., MLFP3023
   const used = getAllModuleIds(db);
-  if (!match) {
-    // Fallback: use packSerial-1 and packSerial-2 if no numeric suffix
-    let i = 1;
-    let m1 = `${packSerial}-${i}`;
-    while (used.has(m1)) {
-      i++;
-      m1 = `${packSerial}-${i}`;
+
+  // Find max numeric suffix (last 5 digits) for today's prefix
+  let max = 0;
+  for (const id of used) {
+    if (id.startsWith(prefix) && id.length === prefix.length + 5) {
+      const tail = id.slice(prefix.length);
+      if (/^\d{5}$/.test(tail)) {
+        const n = parseInt(tail, 10);
+        if (n > max) max = n;
+      }
     }
-    i++;
-    let m2 = `${packSerial}-${i}`;
-    while (used.has(m2)) {
-      i++;
-      m2 = `${packSerial}-${i}`;
-    }
-    return { module1Id: m1, module2Id: m2 };
   }
-  const prefix = match[1];
-  const digits = match[2];
-  const pad = digits.length;
-  let n = parseInt(digits, 10);
-  // module1 starts at n, module2 >= n+1, skipping used
-  let m1 = `${prefix}${String(n).padStart(pad, "0")}`;
+
+  // Propose next two ids, skipping any that are already used
+  const nextId = (n: number) => `${prefix}${String(n).padStart(5, "0")}`;
+  let n1 = Math.max(1, max + 1);
+  let m1 = nextId(n1);
   while (used.has(m1)) {
-    n++;
-    m1 = `${prefix}${String(n).padStart(pad, "0")}`;
+    n1++;
+    m1 = nextId(n1);
   }
-  n++;
-  let m2 = `${prefix}${String(n).padStart(pad, "0")}`;
+  let n2 = n1 + 1;
+  let m2 = nextId(n2);
   while (used.has(m2)) {
-    n++;
-    m2 = `${prefix}${String(n).padStart(pad, "0")}`;
+    n2++;
+    m2 = nextId(n2);
   }
   return { module1Id: m1, module2Id: m2 };
 }
@@ -143,17 +142,20 @@ export const generatePack: RequestHandler = async (req, res) => {
 
   const { module1Id, module2Id } = nextModuleIds(db, finalPackSerial);
 
+  const createdAt = new Date().toISOString();
+
   try {
     const files = await generateCodes(
       code_type || "barcode",
       module1Id,
       module2Id,
       finalPackSerial,
+      createdAt,
     );
 
     const doc: PackDoc = {
       pack_serial: finalPackSerial,
-      created_at: new Date().toISOString(),
+      created_at: createdAt,
       created_by: operator || null,
       modules: {
         [module1Id]: m1,
@@ -266,6 +268,7 @@ export const generateMasterOnly: RequestHandler = async (req, res) => {
       m1,
       m2,
       pack_serial,
+      pack.created_at,
     );
     // update only master url
     pack.codes.master = files.masterUrl;
