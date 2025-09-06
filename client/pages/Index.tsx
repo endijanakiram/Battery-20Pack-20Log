@@ -121,7 +121,8 @@ export default function Index() {
           const lines = j.conflicts
             .map((c: any) => `${c.cell} in ${c.pack} / ${c.module}`)
             .join("\n");
-          toast.error("Duplicate cells found:\n" + lines, { duration: 7000 });
+          setErrorInfo(`Duplicate cells found:\n${lines}`);
+          toast.error("Duplicate cells found. See details below.", { duration: 5000 });
           setLoading(false);
           return;
         } else if (
@@ -129,7 +130,8 @@ export default function Index() {
           j.module2_duplicates?.length
         ) {
           const msg = `Duplicate cells in module1: ${j.module1_duplicates.join(", ")}\nDuplicate cells in module2: ${j.module2_duplicates.join(", ")}`;
-          toast.error(msg, { duration: 7000 });
+          setErrorInfo(msg);
+          toast.error("Duplicate cells within module. See details below.", { duration: 5000 });
           setLoading(false);
           return;
         }
