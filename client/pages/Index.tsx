@@ -305,6 +305,10 @@ export default function Index() {
               placeholder="Leave blank for auto (e.g., RIV2509LFP90010001)"
               className="mt-1"
             />
+            <div className="mt-1 text-xs text-slate-500 flex items-center gap-2">
+              <span>Next: {nextSerial || "—"}</span>
+              <Button size="sm" variant="outline" onClick={() => setPackSerial(nextSerial)}>Autofill</Button>
+            </div>
           </div>
           <div className="md:col-span-3">
             <label className="text-sm font-medium">Operator</label>
