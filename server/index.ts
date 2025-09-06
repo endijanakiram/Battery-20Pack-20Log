@@ -36,6 +36,9 @@ export function createServer() {
   // Battery pack APIs
   app.post("/api/packs/generate", generatePack);
   app.post("/api/packs/master-only", generateMasterOnly);
+  app.post("/api/packs/regenerate", (req, res, next) =>
+    import("./routes/packs").then((m) => m.regenerateCodes(req, res, next)),
+  );
   app.get("/api/packs", (req, res, next) =>
     import("./routes/packs").then((m) => m.listPacks(req, res, next)),
   );
