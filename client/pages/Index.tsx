@@ -46,6 +46,7 @@ export default function Index() {
   const [nextSerial, setNextSerial] = useState<string>("");
   const [errorInfo, setErrorInfo] = useState<string>("");
   const [modulesEnabled, setModulesEnabled] = useState<ModulesEnabled>({ m1: true, m2: true, m3: false });
+  const [serialExists, setSerialExists] = useState(false);
 
   useEffect(() => {
     fetchDB();
@@ -121,9 +122,11 @@ export default function Index() {
             "Pack exists. Overwrite? This will replace existing data.",
           );
           if (!confirmOverwrite) {
+            setSerialExists(true);
             setLoading(false);
             return;
           }
+          setSerialExists(false);
           res = await fetch("/api/packs/generate", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -147,11 +150,16 @@ export default function Index() {
           return;
         } else if (
           j.module1_duplicates?.length ||
-          j.module2_duplicates?.length
+          j.module2_duplicates?.length ||
+          j.module3_duplicates?.length
         ) {
-          const msg = `Duplicate cells in module1: ${j.module1_duplicates.join(", ")}\nDuplicate cells in module2: ${j.module2_duplicates.join(", ")}`;
+          const msg = `Duplicate cells in module1: ${j.module1_duplicates?.join(", ") || "-"}\nDuplicate cells in module2: ${j.module2_duplicates?.join(", ") || "-"}\nDuplicate cells in module3: ${j.module3_duplicates?.join(", ") || "-"}`;
           setErrorInfo(msg);
           toast.error("Duplicate cells within module. See details below.", { duration: 5000 });
+          setLoading(false);
+          return;
+        } else {
+          toast.error(j.error || "Conflict error");
           setLoading(false);
           return;
         }
@@ -240,7 +248,8 @@ export default function Index() {
         const j = await res.json();
         if (j.exists) {
           const ok = window.confirm("Pack exists. Overwrite existing data?");
-          if (!ok) { setLoading(false); return; }
+          if (!ok) { setSerialExists(true); setLoading(false); return; }
+          setSerialExists(false);
           res = await fetch("/api/packs/save-only", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -266,9 +275,13 @@ export default function Index() {
           j.module2_duplicates?.length ||
           j.module3_duplicates?.length
         ) {
-          const msg = `Duplicate cells in module1: ${j.module1_duplicates.join(", ")}\nDuplicate cells in module2: ${j.module2_duplicates.join(", ")}\nDuplicate cells in module3: ${j.module3_duplicates.join(", ")}`;
+          const msg = `Duplicate cells in module1: ${j.module1_duplicates?.join(", ") || "-"}\nDuplicate cells in module2: ${j.module2_duplicates?.join(", ") || "-"}\nDuplicate cells in module3: ${j.module3_duplicates?.join(", ") || "-"}`;
           setErrorInfo(msg);
           toast.error("Duplicate cells within module. See details below.", { duration: 5000 });
+          setLoading(false);
+          return;
+        } else {
+          toast.error(j.error || "Conflict error");
           setLoading(false);
           return;
         }
@@ -300,6 +313,7 @@ export default function Index() {
     setM1("");
     setM2("");
     setM3("");
+    setSerialExists(false);
     setLastFiles({});
   }
 
@@ -394,13 +408,16 @@ export default function Index() {
             <label className="text-sm font-medium">Battery Pack Serial</label>
             <Input
               value={packSerial}
-              onChange={(e) => setPackSerial(e.target.value)}
+              onChange={(e) => { setPackSerial(e.target.value); setSerialExists(false); }}
               placeholder="Leave blank for auto (e.g., RIV2509LFP90010001)"
-              className="mt-1"
+              className={`mt-1 ${serialExists ? "border-red-500 text-red-700" : ""}`}
             />
+            {serialExists && (
+              <div className="mt-1 text-xs text-red-600">This pack serial already exists. Choose a different serial or overwrite.</div>
+            )}
             <div className="mt-1 text-xs text-slate-500 flex items-center gap-2">
               <span>Next: {nextSerial || "—"}</span>
-              <Button size="sm" variant="outline" onClick={() => setPackSerial(nextSerial)}>Autofill</Button>
+              <Button size="sm" variant="outline" onClick={() => { setPackSerial(nextSerial); setSerialExists(false); }}>Autofill</Button>
             </div>
           </div>
           <div className="md:col-span-3">
