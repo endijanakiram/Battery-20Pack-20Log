@@ -485,10 +485,7 @@ export default function Index() {
         {/* Help */}
         <section className="mt-10 text-xs text-slate-500">
           <p>
-            Label printing spec: 20×20 mm at 300 dpi = 236×236 px. For QR,
-            payloads use compact JSON for reliability. Barcode uses short text
-            payloads like M:&lt;module_id&gt; and
-            P:&lt;pack&gt;|MS:&lt;m1&gt;,&lt;m2&gt;.
+            Label printing spec: 25×50 mm at 240 DPI. Generated PNGs target ~236×472 px canvas. Use per-code Print buttons for exact sizing.
           </p>
         </section>
       </main>
