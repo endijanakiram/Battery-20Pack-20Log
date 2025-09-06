@@ -99,7 +99,12 @@ export const generatePack: RequestHandler = async (req, res) => {
 
   const cfg = readConfig();
   const enabled = cfg.modulesEnabled || { m1: true, m2: true, m3: false };
-  const requiredCount = enabled.m1 && enabled.m2 && enabled.m3 ? 3 : enabled.m1 && enabled.m2 ? 2 : 1;
+  const requiredCount =
+    enabled.m1 && enabled.m2 && enabled.m3
+      ? 3
+      : enabled.m1 && enabled.m2
+        ? 2
+        : 1;
 
   const m1 = normalizeLines(module1_cells || "");
   const m2 = normalizeLines((module2_cells as string) || "");
@@ -154,9 +159,18 @@ export const generatePack: RequestHandler = async (req, res) => {
 
     const modules: Record<string, string[]> = {};
     const codes: Record<string, string> = { master: bundle.masterUrl };
-    if (requiredCount >= 1) { modules[ids[0]] = m1; codes[ids[0]] = bundle.moduleUrls[ids[0]]; }
-    if (requiredCount >= 2) { modules[ids[1]] = m2; codes[ids[1]] = bundle.moduleUrls[ids[1]]; }
-    if (requiredCount >= 3) { modules[ids[2]] = m3; codes[ids[2]] = bundle.moduleUrls[ids[2]]; }
+    if (requiredCount >= 1) {
+      modules[ids[0]] = m1;
+      codes[ids[0]] = bundle.moduleUrls[ids[0]];
+    }
+    if (requiredCount >= 2) {
+      modules[ids[1]] = m2;
+      codes[ids[1]] = bundle.moduleUrls[ids[1]];
+    }
+    if (requiredCount >= 3) {
+      modules[ids[2]] = m3;
+      codes[ids[2]] = bundle.moduleUrls[ids[2]];
+    }
 
     const doc: PackDoc = {
       pack_serial: finalPackSerial,
@@ -175,12 +189,10 @@ export const generatePack: RequestHandler = async (req, res) => {
       files: { modules: bundle.moduleUrls, master: bundle.masterUrl },
     });
   } catch (err: any) {
-    return res
-      .status(500)
-      .json({
-        error: "Failed to generate codes",
-        detail: String(err?.message || err),
-      });
+    return res.status(500).json({
+      error: "Failed to generate codes",
+      detail: String(err?.message || err),
+    });
   }
 };
 
@@ -278,19 +290,14 @@ export const generateMasterOnly: RequestHandler = async (req, res) => {
 };
 
 export const savePackOnly: RequestHandler = (req, res) => {
-  const {
-    pack_serial,
-    module1_cells,
-    module2_cells,
-    operator,
-    overwrite,
-  } = req.body as {
-    pack_serial?: string;
-    module1_cells: string;
-    module2_cells?: string;
-    operator?: string | null;
-    overwrite?: boolean;
-  };
+  const { pack_serial, module1_cells, module2_cells, operator, overwrite } =
+    req.body as {
+      pack_serial?: string;
+      module1_cells: string;
+      module2_cells?: string;
+      operator?: string | null;
+      overwrite?: boolean;
+    };
 
   const db = readDB();
   const finalPackSerial =
@@ -300,7 +307,12 @@ export const savePackOnly: RequestHandler = (req, res) => {
 
   const cfg = readConfig();
   const enabled = cfg.modulesEnabled || { m1: true, m2: true, m3: false };
-  const requiredCount = enabled.m1 && enabled.m2 && enabled.m3 ? 3 : enabled.m1 && enabled.m2 ? 2 : 1;
+  const requiredCount =
+    enabled.m1 && enabled.m2 && enabled.m3
+      ? 3
+      : enabled.m1 && enabled.m2
+        ? 2
+        : 1;
 
   const m1 = normalizeLines(module1_cells || "");
   const m2 = normalizeLines((module2_cells as string) || "");
@@ -387,7 +399,11 @@ export const regenerateCodes: RequestHandler = async (req, res) => {
     for (const id of moduleIds) codes[id] = bundle.moduleUrls[id];
     pack.codes = codes;
     writeDB(db);
-    return res.json({ ok: true, pack, files: { modules: bundle.moduleUrls, master: bundle.masterUrl } });
+    return res.json({
+      ok: true,
+      pack,
+      files: { modules: bundle.moduleUrls, master: bundle.masterUrl },
+    });
   } catch (err: any) {
     return res.status(500).json({
       error: "Failed to regenerate codes",

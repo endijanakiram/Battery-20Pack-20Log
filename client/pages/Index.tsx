@@ -16,15 +16,23 @@ interface BatteryDB {
   packs: Record<string, PackDoc>;
 }
 
-interface ModulesEnabled { m1: boolean; m2: boolean; m3: boolean }
-interface Config { model: "LFP6" | "LFP9"; batch: string; modulesEnabled: ModulesEnabled }
+interface ModulesEnabled {
+  m1: boolean;
+  m2: boolean;
+  m3: boolean;
+}
+interface Config {
+  model: "LFP6" | "LFP9";
+  batch: string;
+  modulesEnabled: ModulesEnabled;
+}
 
 type CodeType = "barcode" | "qr";
 
 type GenerateResponse = {
   ok: boolean;
   pack: PackDoc;
-  files: { modules: Record<string,string>; master: string };
+  files: { modules: Record<string, string>; master: string };
 };
 
 export default function Index() {
@@ -40,12 +48,16 @@ export default function Index() {
   const [searchQ, setSearchQ] = useState("");
   const [searchRes, setSearchRes] = useState<any>(null);
   const [lastFiles, setLastFiles] = useState<{
-    modules?: Record<string,string>;
+    modules?: Record<string, string>;
     master?: string;
   }>({});
   const [nextSerial, setNextSerial] = useState<string>("");
   const [errorInfo, setErrorInfo] = useState<string>("");
-  const [modulesEnabled, setModulesEnabled] = useState<ModulesEnabled>({ m1: true, m2: true, m3: false });
+  const [modulesEnabled, setModulesEnabled] = useState<ModulesEnabled>({
+    m1: true,
+    m2: true,
+    m3: false,
+  });
   const [serialExists, setSerialExists] = useState(false);
 
   useEffect(() => {
@@ -96,7 +108,11 @@ export default function Index() {
   async function handleGenerate() {
     const need2 = modulesEnabled.m1 && modulesEnabled.m2 && !modulesEnabled.m3;
     const need3 = modulesEnabled.m1 && modulesEnabled.m2 && modulesEnabled.m3;
-    if (!m1.trim() || (need2 && !m2.trim()) || (need3 && (!m2.trim() || !m3.trim()))) {
+    if (
+      !m1.trim() ||
+      (need2 && !m2.trim()) ||
+      (need3 && (!m2.trim() || !m3.trim()))
+    ) {
       toast.error("Paste required module cell lists per config");
       return;
     }
@@ -145,7 +161,9 @@ export default function Index() {
             .map((c: any) => `${c.cell} in ${c.pack} / ${c.module}`)
             .join("\n");
           setErrorInfo(`Duplicate cells found:\n${lines}`);
-          toast.error("Duplicate cells found. See details below.", { duration: 5000 });
+          toast.error("Duplicate cells found. See details below.", {
+            duration: 5000,
+          });
           setLoading(false);
           return;
         } else if (
@@ -155,7 +173,9 @@ export default function Index() {
         ) {
           const msg = `Duplicate cells in module1: ${j.module1_duplicates?.join(", ") || "-"}\nDuplicate cells in module2: ${j.module2_duplicates?.join(", ") || "-"}\nDuplicate cells in module3: ${j.module3_duplicates?.join(", ") || "-"}`;
           setErrorInfo(msg);
-          toast.error("Duplicate cells within module. See details below.", { duration: 5000 });
+          toast.error("Duplicate cells within module. See details below.", {
+            duration: 5000,
+          });
           setLoading(false);
           return;
         } else {
@@ -187,12 +207,17 @@ export default function Index() {
       const res = await fetch("/api/packs/regenerate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pack_serial: packSerial.trim(), code_type: type }),
+        body: JSON.stringify({
+          pack_serial: packSerial.trim(),
+          code_type: type,
+        }),
       });
       const j = await res.json();
       if (!j.ok) throw new Error(j.error || "Failed");
       setLastFiles({ modules: j.files.modules, master: j.files.master });
-      setDb((prev) => ({ packs: { ...prev.packs, [j.pack.pack_serial]: j.pack } }));
+      setDb((prev) => ({
+        packs: { ...prev.packs, [j.pack.pack_serial]: j.pack },
+      }));
       toast.success(`Regenerated as ${type.toUpperCase()}`);
     } catch (e: any) {
       toast.error(e?.message || "Error regenerating codes");
@@ -227,7 +252,11 @@ export default function Index() {
   async function handleSaveOnly() {
     const need2 = modulesEnabled.m1 && modulesEnabled.m2 && !modulesEnabled.m3;
     const need3 = modulesEnabled.m1 && modulesEnabled.m2 && modulesEnabled.m3;
-    if (!m1.trim() || (need2 && !m2.trim()) || (need3 && (!m2.trim() || !m3.trim()))) {
+    if (
+      !m1.trim() ||
+      (need2 && !m2.trim()) ||
+      (need3 && (!m2.trim() || !m3.trim()))
+    ) {
       toast.error("Paste required module cell lists per config");
       return;
     }
@@ -248,7 +277,11 @@ export default function Index() {
         const j = await res.json();
         if (j.exists) {
           const ok = window.confirm("Pack exists. Overwrite existing data?");
-          if (!ok) { setSerialExists(true); setLoading(false); return; }
+          if (!ok) {
+            setSerialExists(true);
+            setLoading(false);
+            return;
+          }
           setSerialExists(false);
           res = await fetch("/api/packs/save-only", {
             method: "POST",
@@ -267,7 +300,9 @@ export default function Index() {
             .map((c: any) => `${c.cell} in ${c.pack} / ${c.module}`)
             .join("\n");
           setErrorInfo(`Duplicate cells found:\n${lines}`);
-          toast.error("Duplicate cells found. See details below.", { duration: 5000 });
+          toast.error("Duplicate cells found. See details below.", {
+            duration: 5000,
+          });
           setLoading(false);
           return;
         } else if (
@@ -277,7 +312,9 @@ export default function Index() {
         ) {
           const msg = `Duplicate cells in module1: ${j.module1_duplicates?.join(", ") || "-"}\nDuplicate cells in module2: ${j.module2_duplicates?.join(", ") || "-"}\nDuplicate cells in module3: ${j.module3_duplicates?.join(", ") || "-"}`;
           setErrorInfo(msg);
-          toast.error("Duplicate cells within module. See details below.", { duration: 5000 });
+          toast.error("Duplicate cells within module. See details below.", {
+            duration: 5000,
+          });
           setLoading(false);
           return;
         } else {
@@ -289,7 +326,9 @@ export default function Index() {
       const data = await res.json();
       if (!data.ok) throw new Error("Failed");
       setPackSerial(data.pack.pack_serial);
-      setDb((prev) => ({ packs: { ...prev.packs, [data.pack.pack_serial]: data.pack } }));
+      setDb((prev) => ({
+        packs: { ...prev.packs, [data.pack.pack_serial]: data.pack },
+      }));
       toast.success("Saved without generating codes");
     } catch (e: any) {
       toast.error(e?.message || "Error saving pack");
@@ -393,7 +432,10 @@ export default function Index() {
           <div className="flex gap-2">
             <Button
               variant="ghost"
-              onClick={() => { localStorage.removeItem("auth_role"); nav("/"); }}
+              onClick={() => {
+                localStorage.removeItem("auth_role");
+                nav("/");
+              }}
             >
               Logout
             </Button>
@@ -408,16 +450,31 @@ export default function Index() {
             <label className="text-sm font-medium">Battery Pack Serial</label>
             <Input
               value={packSerial}
-              onChange={(e) => { setPackSerial(e.target.value); setSerialExists(false); }}
+              onChange={(e) => {
+                setPackSerial(e.target.value);
+                setSerialExists(false);
+              }}
               placeholder="Leave blank for auto (e.g., RIV2509LFP90010001)"
               className={`mt-1 ${serialExists ? "border-red-500 text-red-700" : ""}`}
             />
             {serialExists && (
-              <div className="mt-1 text-xs text-red-600">This pack serial already exists. Choose a different serial or overwrite.</div>
+              <div className="mt-1 text-xs text-red-600">
+                This pack serial already exists. Choose a different serial or
+                overwrite.
+              </div>
             )}
             <div className="mt-1 text-xs text-slate-500 flex items-center gap-2">
               <span>Next: {nextSerial || "—"}</span>
-              <Button size="sm" variant="outline" onClick={() => { setPackSerial(nextSerial); setSerialExists(false); }}>Autofill</Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setPackSerial(nextSerial);
+                  setSerialExists(false);
+                }}
+              >
+                Autofill
+              </Button>
             </div>
           </div>
           <div className="md:col-span-3">
@@ -459,7 +516,9 @@ export default function Index() {
         </section>
 
         {/* Module inputs - dynamic based on config */}
-        <section className={`mt-6 grid grid-cols-1 ${modulesEnabled.m3 ? "md:grid-cols-3" : modulesEnabled.m2 ? "md:grid-cols-2" : "md:grid-cols-1"} gap-6`}>
+        <section
+          className={`mt-6 grid grid-cols-1 ${modulesEnabled.m3 ? "md:grid-cols-3" : modulesEnabled.m2 ? "md:grid-cols-2" : "md:grid-cols-1"} gap-6`}
+        >
           <div>
             <div className="flex items-center justify-between mb-1">
               <h3 className="font-semibold">Module 1 cells</h3>
@@ -538,51 +597,96 @@ export default function Index() {
         </section>
 
         {/* Latest files preview */}
-        {(lastFiles.modules && Object.keys(lastFiles.modules).length > 0) || lastFiles.master ? (
+        {(lastFiles.modules && Object.keys(lastFiles.modules).length > 0) ||
+        lastFiles.master ? (
           <>
             <div className="mt-6 flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => handleRegenerate("barcode")}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleRegenerate("barcode")}
+              >
                 Regenerate as Barcode
               </Button>
-              <Button size="sm" variant="outline" onClick={() => handleRegenerate("qr")}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleRegenerate("qr")}
+              >
                 Regenerate as QR
               </Button>
             </div>
             <section className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-6">
-            {lastFiles.modules && Object.entries(lastFiles.modules).map(([id, url]) => (
-              <figure key={id} className="border rounded p-3 bg-white shadow-sm">
-                <img src={url} alt={id} className="mx-auto h-auto max-w-full object-contain" />
-                <figcaption className="mt-2 text-center text-xs break-all">
-                  {url.split("/").pop()}
-                </figcaption>
-                {/_QR_/.test(url) && (
-                  <div className="text-center text-xs mt-1">
-                    {(url.split("/").pop() || '').split("_")[0]}
+              {lastFiles.modules &&
+                Object.entries(lastFiles.modules).map(([id, url]) => (
+                  <figure
+                    key={id}
+                    className="border rounded p-3 bg-white shadow-sm"
+                  >
+                    <img
+                      src={url}
+                      alt={id}
+                      className="mx-auto h-auto max-w-full object-contain"
+                    />
+                    <figcaption className="mt-2 text-center text-xs break-all">
+                      {url.split("/").pop()}
+                    </figcaption>
+                    {/_QR_/.test(url) && (
+                      <div className="text-center text-xs mt-1">
+                        {(url.split("/").pop() || "").split("_")[0]}
+                      </div>
+                    )}
+                    <div className="mt-2 flex justify-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => printImage(url)}
+                      >
+                        Print
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => downloadImage(url)}
+                      >
+                        Download
+                      </Button>
+                    </div>
+                  </figure>
+                ))}
+              {lastFiles.master && (
+                <figure className="border rounded p-3 bg-white shadow-sm">
+                  <img
+                    src={lastFiles.master}
+                    alt="master code"
+                    className="mx-auto h-auto max-w-full object-contain"
+                  />
+                  <figcaption className="mt-2 text-center text-xs break-all">
+                    {lastFiles.master.split("/").pop()}
+                  </figcaption>
+                  {/_QR_/.test(lastFiles.master) && (
+                    <div className="text-center text-xs mt-1">
+                      {lastFiles.master.split("/").pop()!.split("_")[0]}
+                    </div>
+                  )}
+                  <div className="mt-2 flex justify-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => printImage(lastFiles.master!)}
+                    >
+                      Print
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => downloadImage(lastFiles.master!)}
+                    >
+                      Download
+                    </Button>
                   </div>
-                )}
-                <div className="mt-2 flex justify-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => printImage(url)}>Print</Button>
-                  <Button variant="outline" size="sm" onClick={() => downloadImage(url)}>Download</Button>
-                </div>
-              </figure>
-            ))}
-            {lastFiles.master && (
-              <figure className="border rounded p-3 bg-white shadow-sm">
-                <img src={lastFiles.master} alt="master code" className="mx-auto h-auto max-w-full object-contain" />
-                <figcaption className="mt-2 text-center text-xs break-all">
-                  {lastFiles.master.split("/").pop()}
-                </figcaption>
-                {/_QR_/.test(lastFiles.master) && (
-                  <div className="text-center text-xs mt-1">
-                    {lastFiles.master.split("/").pop()!.split("_")[0]}
-                  </div>
-                )}
-                <div className="mt-2 flex justify-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => printImage(lastFiles.master!)}>Print</Button>
-                  <Button variant="outline" size="sm" onClick={() => downloadImage(lastFiles.master!)}>Download</Button>
-                </div>
-              </figure>
-            )}
+                </figure>
+              )}
             </section>
           </>
         ) : null}
@@ -661,19 +765,31 @@ export default function Index() {
           {searchRes && searchRes.type === "module" && (
             <div className="mt-4 rounded border bg-white p-4 text-sm">
               <div>
-                Module <b>{searchRes.moduleId}</b> found in pack <b>{searchRes.packId}</b>
+                Module <b>{searchRes.moduleId}</b> found in pack{" "}
+                <b>{searchRes.packId}</b>
               </div>
               <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(searchRes.pack.modules).map(([mid, cells]: any) => (
-                  <div key={mid}>
-                    <div className={"font-semibold " + (mid === searchRes.moduleId ? "text-emerald-700" : "")}>{mid}</div>
-                    <ul className="mt-1 text-xs grid grid-cols-2 gap-x-4">
-                      {cells.map((c: string) => (
-                        <li key={c} className="truncate">{c}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+                {Object.entries(searchRes.pack.modules).map(
+                  ([mid, cells]: any) => (
+                    <div key={mid}>
+                      <div
+                        className={
+                          "font-semibold " +
+                          (mid === searchRes.moduleId ? "text-emerald-700" : "")
+                        }
+                      >
+                        {mid}
+                      </div>
+                      <ul className="mt-1 text-xs grid grid-cols-2 gap-x-4">
+                        {cells.map((c: string) => (
+                          <li key={c} className="truncate">
+                            {c}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ),
+                )}
               </div>
             </div>
           )}
@@ -682,7 +798,9 @@ export default function Index() {
         {/* Help */}
         <section className="mt-10 text-xs text-slate-500">
           <p>
-            Label printing spec: QR 25×25 mm (~197 px @ 203 DPI) and Code128 40×15 mm (315×118 px @ 203 DPI). Use Print for accurate sizing and printer selection.
+            Label printing spec: QR 25×25 mm (~197 px @ 203 DPI) and Code128
+            40×15 mm (315×118 px @ 203 DPI). Use Print for accurate sizing and
+            printer selection.
           </p>
         </section>
       </main>

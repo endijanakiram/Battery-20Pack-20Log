@@ -67,7 +67,11 @@ export default function Admin() {
     const res = await fetch("/api/config", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model, batch, modulesEnabled: { m1: m1On, m2: m2On, m3: m3On } }),
+      body: JSON.stringify({
+        model,
+        batch,
+        modulesEnabled: { m1: m1On, m2: m2On, m3: m3On },
+      }),
     });
     if (res.ok) previewNext();
   }
@@ -90,7 +94,9 @@ export default function Admin() {
         if (d !== dateFilter) return false;
       }
       // Parse from pack_serial: RIV YY MM MODEL(4) BATCH(3) UNIT(4)
-      const m = p.pack_serial.match(/^RIV(\d{2})(\d{2})(LFP6|LFP9)(\d{3})(\d{4})$/);
+      const m = p.pack_serial.match(
+        /^RIV(\d{2})(\d{2})(LFP6|LFP9)(\d{3})(\d{4})$/,
+      );
       const YY = m ? m[1] : null;
       const MM = m ? m[2] : null;
       const BATCH = m ? m[4] : null;
@@ -115,7 +121,10 @@ export default function Admin() {
   }, [packs, dateFilter, batchFilter, monthFilter, yearFilter]);
 
   const current = useMemo(
-    () => filteredPacks.find((p) => p.pack_serial === selected) || filteredPacks[0] || null,
+    () =>
+      filteredPacks.find((p) => p.pack_serial === selected) ||
+      filteredPacks[0] ||
+      null,
     [filteredPacks, selected],
   );
 
@@ -267,10 +276,40 @@ export default function Admin() {
               </div>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-3">
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={m1On} onChange={(e)=>setM1On(e.target.checked)} /> Module 1</label>
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={m2On} onChange={(e)=>setM2On(e.target.checked)} /> Module 2</label>
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={m3On} onChange={(e)=>setM3On(e.target.checked)} /> Module 3</label>
-              <div className="col-span-3 text-xs text-slate-600">Variant: {m1On && m2On && m3On ? 'Max' : m1On && m2On ? 'Pro' : m1On ? 'Classic' : '—'}</div>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={m1On}
+                  onChange={(e) => setM1On(e.target.checked)}
+                />{" "}
+                Module 1
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={m2On}
+                  onChange={(e) => setM2On(e.target.checked)}
+                />{" "}
+                Module 2
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={m3On}
+                  onChange={(e) => setM3On(e.target.checked)}
+                />{" "}
+                Module 3
+              </label>
+              <div className="col-span-3 text-xs text-slate-600">
+                Variant:{" "}
+                {m1On && m2On && m3On
+                  ? "Max"
+                  : m1On && m2On
+                    ? "Pro"
+                    : m1On
+                      ? "Classic"
+                      : "—"}
+              </div>
             </div>
             <div className="mt-3 flex gap-2">
               <Button variant="outline" onClick={saveConfig}>
@@ -290,48 +329,106 @@ export default function Admin() {
 
             <div className="mb-3 space-y-2">
               <div className="flex gap-2">
-                <Input placeholder="Trace by pack/module/cell" value={searchQ} onChange={(e) => setSearchQ(e.target.value)} />
-                <Button variant="outline" onClick={async () => {
-                  const q = searchQ.trim();
-                  if (!q) return;
-                  const r = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
-                  const j = await r.json();
-                  if (j && (j.type === 'pack' || j.type === 'cell' || j.type === 'module')) {
-                    setSelected(j.pack.pack_serial);
-                    setSearchInfo(j.type === 'pack' ? `Opened pack ${j.pack.pack_serial}` : j.type === 'cell' ? `Cell ${j.cell} found in ${j.pack.pack_serial} / ${j.moduleId}` : `Module ${j.moduleId} found in ${j.pack.pack_serial}`);
-                  } else {
-                    setSearchInfo('Not found');
-                  }
-                }}>Search</Button>
+                <Input
+                  placeholder="Trace by pack/module/cell"
+                  value={searchQ}
+                  onChange={(e) => setSearchQ(e.target.value)}
+                />
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    const q = searchQ.trim();
+                    if (!q) return;
+                    const r = await fetch(
+                      `/api/search?q=${encodeURIComponent(q)}`,
+                    );
+                    const j = await r.json();
+                    if (
+                      j &&
+                      (j.type === "pack" ||
+                        j.type === "cell" ||
+                        j.type === "module")
+                    ) {
+                      setSelected(j.pack.pack_serial);
+                      setSearchInfo(
+                        j.type === "pack"
+                          ? `Opened pack ${j.pack.pack_serial}`
+                          : j.type === "cell"
+                            ? `Cell ${j.cell} found in ${j.pack.pack_serial} / ${j.moduleId}`
+                            : `Module ${j.moduleId} found in ${j.pack.pack_serial}`,
+                      );
+                    } else {
+                      setSearchInfo("Not found");
+                    }
+                  }}
+                >
+                  Search
+                </Button>
               </div>
-              {searchInfo && <div className="text-xs text-slate-500">{searchInfo}</div>}
+              {searchInfo && (
+                <div className="text-xs text-slate-500">{searchInfo}</div>
+              )}
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs">Date</label>
-                  <Input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} />
+                  <Input
+                    type="date"
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                  />
                 </div>
                 <div>
                   <label className="text-xs">Batch</label>
-                  <Input value={batchFilter} maxLength={3} onChange={(e) => setBatchFilter(e.target.value)} placeholder="001" />
+                  <Input
+                    value={batchFilter}
+                    maxLength={3}
+                    onChange={(e) => setBatchFilter(e.target.value)}
+                    placeholder="001"
+                  />
                 </div>
                 <div>
                   <label className="text-xs">Month</label>
-                  <select className="w-full border rounded px-2 py-2" value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)}>
+                  <select
+                    className="w-full border rounded px-2 py-2"
+                    value={monthFilter}
+                    onChange={(e) => setMonthFilter(e.target.value)}
+                  >
                     <option value="">All</option>
-                    {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map((m) => (
-                      <option key={m} value={m}>{m}</option>
+                    {Array.from({ length: 12 }, (_, i) =>
+                      String(i + 1).padStart(2, "0"),
+                    ).map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div>
                   <label className="text-xs">Year</label>
-                  <Input value={yearFilter} onChange={(e) => setYearFilter(e.target.value)} placeholder="2025" />
+                  <Input
+                    value={yearFilter}
+                    onChange={(e) => setYearFilter(e.target.value)}
+                    placeholder="2025"
+                  />
                 </div>
               </div>
               <div className="flex gap-2 mt-2">
-                <Button variant="outline" size="sm" onClick={() => { setDateFilter(""); setBatchFilter(""); setMonthFilter(""); setYearFilter(""); }}>Clear Filters</Button>
-                <div className="text-xs text-slate-500 self-center">Showing {filteredPacks.length} / {packs.length}</div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setDateFilter("");
+                    setBatchFilter("");
+                    setMonthFilter("");
+                    setYearFilter("");
+                  }}
+                >
+                  Clear Filters
+                </Button>
+                <div className="text-xs text-slate-500 self-center">
+                  Showing {filteredPacks.length} / {packs.length}
+                </div>
               </div>
             </div>
 
@@ -370,47 +467,128 @@ export default function Admin() {
                 </div>
               </div>
               <div className="flex gap-2 mt-4">
-                <Button size="sm" variant="outline" onClick={async () => {
-                  if (!current) return;
-                  const r = await fetch('/api/packs/regenerate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pack_serial: current.pack_serial, code_type: 'barcode' }) });
-                  const j = await r.json();
-                  if (j.ok) { setPacks((ps) => ps.map(p => p.pack_serial === current.pack_serial ? j.pack : p)); }
-                }}>Regenerate as Barcode</Button>
-                <Button size="sm" variant="outline" onClick={async () => {
-                  if (!current) return;
-                  const r = await fetch('/api/packs/regenerate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pack_serial: current.pack_serial, code_type: 'qr' }) });
-                  const j = await r.json();
-                  if (j.ok) { setPacks((ps) => ps.map(p => p.pack_serial === current.pack_serial ? j.pack : p)); }
-                }}>Regenerate as QR</Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    if (!current) return;
+                    const r = await fetch("/api/packs/regenerate", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        pack_serial: current.pack_serial,
+                        code_type: "barcode",
+                      }),
+                    });
+                    const j = await r.json();
+                    if (j.ok) {
+                      setPacks((ps) =>
+                        ps.map((p) =>
+                          p.pack_serial === current.pack_serial ? j.pack : p,
+                        ),
+                      );
+                    }
+                  }}
+                >
+                  Regenerate as Barcode
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    if (!current) return;
+                    const r = await fetch("/api/packs/regenerate", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        pack_serial: current.pack_serial,
+                        code_type: "qr",
+                      }),
+                    });
+                    const j = await r.json();
+                    if (j.ok) {
+                      setPacks((ps) =>
+                        ps.map((p) =>
+                          p.pack_serial === current.pack_serial ? j.pack : p,
+                        ),
+                      );
+                    }
+                  }}
+                >
+                  Regenerate as QR
+                </Button>
               </div>
 
               {/* Codes preview */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-                {Object.entries(current.codes).filter(([k]) => k !== 'master').map(([id, url]) => (
-                  <figure key={id} className="border rounded p-3 bg-white shadow-sm">
-                    <img src={url} alt={id} className="mx-auto h-auto max-w-full object-contain" />
-                    <figcaption className="mt-2 text-center text-xs break-all">{url.split('/').pop()}</figcaption>
-                    {/_QR_/.test(url) && (
-                      <div className="text-center text-xs mt-1">{(url.split('/').pop() || '').split('_')[0]}</div>
-                    )}
-                    <div className="mt-2 flex justify-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => printImage(url)}>Print</Button>
-                      <Button variant="outline" size="sm" onClick={() => downloadImage(url)}>Download</Button>
-                    </div>
-                  </figure>
-                ))}
+                {Object.entries(current.codes)
+                  .filter(([k]) => k !== "master")
+                  .map(([id, url]) => (
+                    <figure
+                      key={id}
+                      className="border rounded p-3 bg-white shadow-sm"
+                    >
+                      <img
+                        src={url}
+                        alt={id}
+                        className="mx-auto h-auto max-w-full object-contain"
+                      />
+                      <figcaption className="mt-2 text-center text-xs break-all">
+                        {url.split("/").pop()}
+                      </figcaption>
+                      {/_QR_/.test(url) && (
+                        <div className="text-center text-xs mt-1">
+                          {(url.split("/").pop() || "").split("_")[0]}
+                        </div>
+                      )}
+                      <div className="mt-2 flex justify-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => printImage(url)}
+                        >
+                          Print
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => downloadImage(url)}
+                        >
+                          Download
+                        </Button>
+                      </div>
+                    </figure>
+                  ))}
                 {current.codes.master && (
                   <figure className="border rounded p-3 bg-white shadow-sm">
-                    <img src={current.codes.master} alt="master" className="mx-auto h-auto max-w-full object-contain" />
-                    <figcaption className="mt-2 text-center text-xs break-all">{current.codes.master.split('/').pop()}</figcaption>
+                    <img
+                      src={current.codes.master}
+                      alt="master"
+                      className="mx-auto h-auto max-w-full object-contain"
+                    />
+                    <figcaption className="mt-2 text-center text-xs break-all">
+                      {current.codes.master.split("/").pop()}
+                    </figcaption>
                     {/_QR_/.test(current.codes.master) && (
                       <div className="text-center text-xs mt-1">
-                        {current.codes.master.split('/').pop()!.split('_')[0]}
+                        {current.codes.master.split("/").pop()!.split("_")[0]}
                       </div>
                     )}
                     <div className="mt-2 flex justify-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => printImage(current.codes.master)}>Print</Button>
-                      <Button variant="outline" size="sm" onClick={() => downloadImage(current.codes.master)}>Download</Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => printImage(current.codes.master)}
+                      >
+                        Print
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => downloadImage(current.codes.master)}
+                      >
+                        Download
+                      </Button>
                     </div>
                   </figure>
                 )}
@@ -425,7 +603,9 @@ export default function Admin() {
                       className="mt-2"
                       rows={10}
                       value={editing[mid] || ""}
-                      onChange={(e) => setEditing((s) => ({ ...s, [mid]: e.target.value }))}
+                      onChange={(e) =>
+                        setEditing((s) => ({ ...s, [mid]: e.target.value }))
+                      }
                     />
                   </div>
                 ))}

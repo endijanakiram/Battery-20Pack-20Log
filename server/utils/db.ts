@@ -31,7 +31,11 @@ export function ensureDataDirs() {
 
 export function readDB(): BatteryDB {
   ensureDataDirs();
-  const defaultCfg: Config = { model: "LFP9", batch: "001", modulesEnabled: { m1: true, m2: true, m3: false } };
+  const defaultCfg: Config = {
+    model: "LFP9",
+    batch: "001",
+    modulesEnabled: { m1: true, m2: true, m3: false },
+  };
   if (!fs.existsSync(DB_PATH)) {
     const empty: BatteryDB = { packs: {}, config: defaultCfg };
     fs.writeFileSync(DB_PATH, JSON.stringify(empty, null, 2));

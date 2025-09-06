@@ -33,7 +33,6 @@ export function createServer() {
   // Battery pack APIs
   app.post("/api/packs/generate", generatePack);
 
-
   app.post("/api/packs/master-only", generateMasterOnly);
 
   app.post("/api/packs/regenerate", (req, res, next) =>

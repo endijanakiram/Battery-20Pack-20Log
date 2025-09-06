@@ -8,7 +8,6 @@ import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
-
 function Guard({
   role,
   children,
@@ -23,31 +22,31 @@ function Guard({
 
 const App = () => (
   <>
-                <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route
-            path="/dashboard"
-            element={
-              <Guard role="operator">
-                <Dashboard />
-              </Guard>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <Guard role="admin">
-                <Admin />
-              </Guard>
-            }
-          />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-      </>
+    <Sonner />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route
+          path="/dashboard"
+          element={
+            <Guard role="operator">
+              <Dashboard />
+            </Guard>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <Guard role="admin">
+              <Admin />
+            </Guard>
+          }
+        />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  </>
 );
 
 createRoot(document.getElementById("root")!).render(<App />);
