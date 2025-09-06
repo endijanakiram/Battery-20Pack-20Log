@@ -27,6 +27,8 @@ export default function Admin() {
       return;
     }
     load();
+    loadConfig();
+    previewNext();
   }, []);
 
   async function load() {
@@ -35,6 +37,32 @@ export default function Admin() {
     const list: PackDoc[] = j.packs || [];
     setPacks(list);
     if (list.length && !selected) setSelected(list[0].pack_serial);
+  }
+
+  async function loadConfig() {
+    const res = await fetch("/api/config");
+    if (res.ok) {
+      const j = await res.json();
+      setModel(j.model);
+      setBatch(j.batch);
+    }
+  }
+
+  async function saveConfig() {
+    const res = await fetch("/api/config", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model, batch }),
+    });
+    if (res.ok) previewNext();
+  }
+
+  async function previewNext() {
+    const r = await fetch("/api/next-pack-serial");
+    if (r.ok) {
+      const j = await r.json();
+      setNextSerial(j.next);
+    }
   }
 
   const total = useMemo(() => packs.length, [packs]);
