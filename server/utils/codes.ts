@@ -52,10 +52,9 @@ async function generateQrPng(
   payload: string,
   _humanText: string,
 ): Promise<Buffer> {
-  // Use bwip-js qrcode to conform to exact canvas size (centered in 50x25mm)
-  const margin = 8;
-  const width = WIDTH_PX - margin * 2;
-  const height = HEIGHT_PX - margin * 2;
+  // Generate square QR (fits within 25x50mm area without stretching)
+  const side = HEIGHT_PX; // 25mm @ 240dpi (~236px)
+  const margin = 4;
   return await bwipjs.toBuffer({
     bcid: "qrcode",
     text: payload,
@@ -64,8 +63,8 @@ async function generateQrPng(
     backgroundcolor: "FFFFFF",
     paddingwidth: margin,
     paddingheight: margin,
-    width,
-    height,
+    width: side - margin * 2,
+    height: side - margin * 2,
   } as any);
 }
 
