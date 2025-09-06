@@ -212,6 +212,23 @@ export const deletePack: RequestHandler = (req, res) => {
   res.json({ ok: true });
 };
 
+export const getConfig: RequestHandler = (_req, res) => {
+  res.json(readConfig());
+};
+
+export const updateConfig: RequestHandler = (req, res) => {
+  const { model, batch } = req.body as { model?: "LFP6" | "LFP9"; batch?: string };
+  if (batch && !/^\d{1,3}$/.test(batch)) return res.status(400).json({ error: "batch must be 1-3 digits" });
+  if (model && model !== "LFP6" && model !== "LFP9") return res.status(400).json({ error: "model must be LFP6 or LFP9" });
+  const cfg = writeConfig({ model, batch: batch ? batch.padStart(3, "0") : undefined });
+  res.json(cfg);
+};
+
+export const nextSerialPreview: RequestHandler = (_req, res) => {
+  const db = readDB();
+  res.json({ next: nextPackSerial(db) });
+};
+
 export const generateMasterOnly: RequestHandler = async (req, res) => {
   const { pack_serial, code_type } = req.body as {
     pack_serial: string;
