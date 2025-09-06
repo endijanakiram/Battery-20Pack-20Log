@@ -67,7 +67,7 @@ export default function Admin() {
     const res = await fetch("/api/config", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model, batch }),
+      body: JSON.stringify({ model, batch, modulesEnabled: { m1: m1On, m2: m2On, m3: m3On } }),
     });
     if (res.ok) previewNext();
   }
