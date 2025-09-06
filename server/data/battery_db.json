@@ -2,6 +2,11 @@
   "packs": {},
   "config": {
     "model": "LFP6",
-    "batch": "001"
+    "batch": "001",
+    "modulesEnabled": {
+      "m1": true,
+      "m2": true,
+      "m3": true
+    }
   }
 }
