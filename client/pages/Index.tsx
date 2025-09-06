@@ -197,26 +197,51 @@ export default function Index() {
     }
   }
 
-  async function handleExportZip() {
-    const urls = [
-      lastFiles.module1,
-      lastFiles.module2,
-      lastFiles.master,
-    ].filter(Boolean) as string[];
-    if (!urls.length) return toast.error("Nothing to export yet");
-    const zip = new JSZip();
-    for (const url of urls) {
-      const resp = await fetch(url);
-      const blob = await resp.blob();
-      const name = url.split("/").pop()!;
-      zip.file(name, blob);
+  async function handleSaveOnly() {
+    if (!m1.trim() || !m2.trim()) {
+      toast.error("Paste both module cell lists");
+      return;
     }
-    const content = await zip.generateAsync({ type: "blob" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(content);
-    a.download = `${packSerial || "codes"}.zip`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+    setLoading(true);
+    try {
+      let res = await fetch("/api/packs/save-only", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pack_serial: packSerial.trim(),
+          module1_cells: m1,
+          module2_cells: m2,
+          operator: operator || null,
+        }),
+      });
+      if (res.status === 409) {
+        const j = await res.json();
+        if (j.exists) {
+          const ok = window.confirm("Pack exists. Overwrite existing data?");
+          if (!ok) { setLoading(false); return; }
+          res = await fetch("/api/packs/save-only", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              pack_serial: packSerial.trim(),
+              module1_cells: m1,
+              module2_cells: m2,
+              operator: operator || null,
+              overwrite: true,
+            }),
+          });
+        }
+      }
+      const data = await res.json();
+      if (!data.ok) throw new Error("Failed");
+      setPackSerial(data.pack.pack_serial);
+      setDb((prev) => ({ packs: { ...prev.packs, [data.pack.pack_serial]: data.pack } }));
+      toast.success("Saved without generating codes");
+    } catch (e: any) {
+      toast.error(e?.message || "Error saving pack");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleSearch() {
