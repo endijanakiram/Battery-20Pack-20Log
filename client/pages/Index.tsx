@@ -10,18 +10,21 @@ interface PackDoc {
   created_at: string;
   created_by: string | null;
   modules: Record<string, string[]>;
-  codes: { module1: string; module2: string; master: string };
+  codes: Record<string, string>;
 }
 interface BatteryDB {
   packs: Record<string, PackDoc>;
 }
+
+interface ModulesEnabled { m1: boolean; m2: boolean; m3: boolean }
+interface Config { model: "LFP6" | "LFP9"; batch: string; modulesEnabled: ModulesEnabled }
 
 type CodeType = "barcode" | "qr";
 
 type GenerateResponse = {
   ok: boolean;
   pack: PackDoc;
-  files: { module1: string; module2: string; master: string };
+  files: { modules: Record<string,string>; master: string };
 };
 
 export default function Index() {
