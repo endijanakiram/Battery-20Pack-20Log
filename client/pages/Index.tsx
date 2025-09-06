@@ -364,42 +364,39 @@ export default function Index() {
         </section>
 
         {/* Latest files preview */}
-        {lastFiles.master && (
-          <section className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-6">
+        {(lastFiles.module1 || lastFiles.module2 || lastFiles.master) && (
+          <section className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             {lastFiles.module1 && (
               <figure className="border rounded p-3 bg-white shadow-sm">
-                <img
-                  src={lastFiles.module1}
-                  alt="module1 code"
-                  className="mx-auto"
-                />
+                <img src={lastFiles.module1} alt="module1 code" className="mx-auto" />
                 <figcaption className="mt-2 text-center text-xs break-all">
                   {lastFiles.module1.split("/").pop()}
                 </figcaption>
+                <div className="mt-2 flex justify-center">
+                  <Button variant="outline" size="sm" onClick={() => printImage(lastFiles.module1!)}>Print Mod 1</Button>
+                </div>
               </figure>
             )}
             {lastFiles.module2 && (
               <figure className="border rounded p-3 bg-white shadow-sm">
-                <img
-                  src={lastFiles.module2}
-                  alt="module2 code"
-                  className="mx-auto"
-                />
+                <img src={lastFiles.module2} alt="module2 code" className="mx-auto" />
                 <figcaption className="mt-2 text-center text-xs break-all">
                   {lastFiles.module2.split("/").pop()}
                 </figcaption>
+                <div className="mt-2 flex justify-center">
+                  <Button variant="outline" size="sm" onClick={() => printImage(lastFiles.module2!)}>Print Mod 2</Button>
+                </div>
               </figure>
             )}
             {lastFiles.master && (
               <figure className="border rounded p-3 bg-white shadow-sm">
-                <img
-                  src={lastFiles.master}
-                  alt="master code"
-                  className="mx-auto"
-                />
+                <img src={lastFiles.master} alt="master code" className="mx-auto" />
                 <figcaption className="mt-2 text-center text-xs break-all">
                   {lastFiles.master.split("/").pop()}
                 </figcaption>
+                <div className="mt-2 flex justify-center">
+                  <Button variant="outline" size="sm" onClick={() => printImage(lastFiles.master!)}>Print Master</Button>
+                </div>
               </figure>
             )}
           </section>
