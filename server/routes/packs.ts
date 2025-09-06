@@ -282,6 +282,43 @@ export const generateMasterOnly: RequestHandler = async (req, res) => {
   }
 };
 
+export const regenerateCodes: RequestHandler = async (req, res) => {
+  const { pack_serial, code_type } = req.body as {
+    pack_serial: string;
+    code_type: CodeType;
+  };
+  if (!pack_serial)
+    return res.status(400).json({ error: "pack_serial is required" });
+  const db = readDB();
+  const pack = db.packs[pack_serial];
+  if (!pack) return res.status(404).json({ error: "Pack not found" });
+  const moduleIds = Object.keys(pack.modules);
+  if (moduleIds.length < 2)
+    return res.status(400).json({ error: "Pack missing modules" });
+  const [m1, m2] = moduleIds;
+  try {
+    const files = await generateCodes(
+      code_type || "barcode",
+      m1,
+      m2,
+      pack_serial,
+      pack.created_at,
+    );
+    pack.codes = {
+      module1: files.module1Url,
+      module2: files.module2Url,
+      master: files.masterUrl,
+    };
+    writeDB(db);
+    return res.json({ ok: true, pack, files: pack.codes });
+  } catch (err: any) {
+    return res.status(500).json({
+      error: "Failed to regenerate codes",
+      detail: String(err?.message || err),
+    });
+  }
+};
+
 export const getDB: RequestHandler = (_req, res) => {
   const db = readDB();
   res.json(db);
