@@ -55,6 +55,11 @@ export default function Admin() {
       const j = await res.json();
       setModel(j.model);
       setBatch(j.batch);
+      if (j.modulesEnabled) {
+        setM1On(!!j.modulesEnabled.m1);
+        setM2On(!!j.modulesEnabled.m2);
+        setM3On(!!j.modulesEnabled.m3);
+      }
     }
   }
 
