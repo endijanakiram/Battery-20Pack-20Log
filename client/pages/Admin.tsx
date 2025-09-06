@@ -127,11 +127,31 @@ export default function Admin() {
   }
 
   function printImage(url: string) {
+    const name = url.split("/").pop() || "code.png";
+    const isQR = /_QR_/.test(name);
+    const isBar = /_BARCODE_/.test(name);
+    const widthMM = isQR ? 25 : isBar ? 40 : 50;
+    const heightMM = isQR ? 25 : isBar ? 15 : 25;
     const w = window.open("", "_blank");
     if (!w) return;
-    w.document.write(
-      `<html><head><title>Print</title></head><body style="margin:0"><img src="${url}" onload="window.print();window.close();" /></body></html>`,
-    );
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Print ${name}</title>
+<style>
+  @page { size: auto; margin: 0; }
+  html, body { height: 100%; }
+  body { margin: 0; display: flex; align-items: center; justify-content: center; }
+  img { width: ${widthMM}mm; height: ${heightMM}mm; object-fit: contain; }
+</style>
+</head>
+<body>
+  <img src="${url}" onload="window.focus(); window.print();" />
+</body>
+</html>`;
+    w.document.open();
+    w.document.write(html);
     w.document.close();
   }
 
