@@ -251,12 +251,17 @@ export default function Index() {
 
   function printImage(url: string) {
     const name = url.split("/").pop() || "code.png";
+    const serial = name.split("_")[0];
     const isQR = /_QR_/.test(name);
     const isBar = /_BARCODE_/.test(name);
-    const widthMM = isQR ? 25 : isBar ? 40 : 50;
-    const heightMM = isQR ? 25 : isBar ? 15 : 25;
+
+    const stickerW = 50; // mm
+    const stickerH = 25; // mm
+    const textH = 2.8; // mm
+
     const w = window.open("", "_blank");
     if (!w) return;
+
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -266,11 +271,21 @@ export default function Index() {
   @page { size: auto; margin: 0; }
   html, body { height: 100%; }
   body { margin: 0; display: flex; align-items: center; justify-content: center; }
-  img { width: ${widthMM}mm; height: ${heightMM}mm; object-fit: contain; }
+  .sticker { width: ${stickerW}mm; height: ${stickerH}mm; padding: 1mm; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+  .img-wrap { width: 100%; display: flex; justify-content: center; }
+  .barcode { width: 40mm; height: 15mm; }
+  .qr { width: 20mm; height: 20mm; }
+  .text { width: 100%; height: ${textH}mm; line-height: ${textH}mm; text-align: center; font-family: monospace; font-size: ${textH}mm; }
 </style>
 </head>
 <body>
-  <img src="${url}" onload="window.focus(); window.print();" />
+  <div class="sticker">
+    <div class="img-wrap">
+      <img class="${isQR ? "qr" : isBar ? "barcode" : "barcode"}" src="${url}" />
+    </div>
+    <div class="text">${serial}</div>
+  </div>
+  <script>window.onload = () => { window.focus(); window.print(); };</script>
 </body>
 </html>`;
     w.document.open();
@@ -476,6 +491,11 @@ export default function Index() {
                 <figcaption className="mt-2 text-center text-xs break-all">
                   {lastFiles.module1.split("/").pop()}
                 </figcaption>
+                {/_QR_/.test(lastFiles.module1) && (
+                  <div className="text-center text-xs mt-1">
+                    {lastFiles.module1.split("/").pop()!.split("_")[0]}
+                  </div>
+                )}
                 <div className="mt-2 flex justify-center gap-2">
                   <Button variant="outline" size="sm" onClick={() => printImage(lastFiles.module1!)}>Print</Button>
                   <Button variant="outline" size="sm" onClick={() => downloadImage(lastFiles.module1!)}>Download</Button>
@@ -488,6 +508,11 @@ export default function Index() {
                 <figcaption className="mt-2 text-center text-xs break-all">
                   {lastFiles.module2.split("/").pop()}
                 </figcaption>
+                {/_QR_/.test(lastFiles.module2) && (
+                  <div className="text-center text-xs mt-1">
+                    {lastFiles.module2.split("/").pop()!.split("_")[0]}
+                  </div>
+                )}
                 <div className="mt-2 flex justify-center gap-2">
                   <Button variant="outline" size="sm" onClick={() => printImage(lastFiles.module2!)}>Print</Button>
                   <Button variant="outline" size="sm" onClick={() => downloadImage(lastFiles.module2!)}>Download</Button>
@@ -500,6 +525,11 @@ export default function Index() {
                 <figcaption className="mt-2 text-center text-xs break-all">
                   {lastFiles.master.split("/").pop()}
                 </figcaption>
+                {/_QR_/.test(lastFiles.master) && (
+                  <div className="text-center text-xs mt-1">
+                    {lastFiles.master.split("/").pop()!.split("_")[0]}
+                  </div>
+                )}
                 <div className="mt-2 flex justify-center gap-2">
                   <Button variant="outline" size="sm" onClick={() => printImage(lastFiles.master!)}>Print</Button>
                   <Button variant="outline" size="sm" onClick={() => downloadImage(lastFiles.master!)}>Download</Button>
