@@ -154,6 +154,27 @@ export default function Index() {
     }
   }
 
+  async function handleRegenerate(type: CodeType) {
+    if (!packSerial.trim()) return toast.error("Enter pack serial");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/packs/regenerate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pack_serial: packSerial.trim(), code_type: type }),
+      });
+      const j = await res.json();
+      if (!j.ok) throw new Error(j.error || "Failed");
+      setLastFiles(j.files);
+      setDb((prev) => ({ packs: { ...prev.packs, [j.pack.pack_serial]: j.pack } }));
+      toast.success(`Regenerated as ${type.toUpperCase()}`);
+    } catch (e: any) {
+      toast.error(e?.message || "Error regenerating codes");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleMasterOnly() {
     if (!packSerial.trim()) return toast.error("Enter pack serial");
     setLoading(true);
@@ -439,7 +460,16 @@ export default function Index() {
 
         {/* Latest files preview */}
         {(lastFiles.module1 || lastFiles.module2 || lastFiles.master) && (
-          <section className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <>
+            <div className="mt-6 flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => handleRegenerate("barcode")}>
+                Regenerate as Barcode
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => handleRegenerate("qr")}>
+                Regenerate as QR
+              </Button>
+            </div>
+            <section className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-6">
             {lastFiles.module1 && (
               <figure className="border rounded p-3 bg-white shadow-sm">
                 <img src={lastFiles.module1} alt="module1 code" className="mx-auto h-auto max-w-full object-contain" />
@@ -476,7 +506,8 @@ export default function Index() {
                 </div>
               </figure>
             )}
-          </section>
+            </section>
+          </>
         )}
 
         {/* Search */}
