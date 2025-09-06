@@ -39,6 +39,8 @@ export default function Index() {
     module2?: string;
     master?: string;
   }>({});
+  const [nextSerial, setNextSerial] = useState<string>("");
+  const [errorInfo, setErrorInfo] = useState<string>("");
 
   useEffect(() => {
     fetchDB();
