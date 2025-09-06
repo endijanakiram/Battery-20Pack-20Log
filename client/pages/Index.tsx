@@ -209,7 +209,7 @@ export default function Index() {
 
   const brand = {
     title: "Battery Pack Data Log",
-    subtitle: "Generate modules, enforce uniqueness, and print 20×20 mm codes",
+    subtitle: "Generate modules, enforce uniqueness, and print 25×50 mm codes @ 240 DPI",
   };
 
   return (
