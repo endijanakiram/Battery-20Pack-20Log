@@ -611,6 +611,25 @@ export default function Index() {
               </div>
             </div>
           )}
+          {searchRes && searchRes.type === "module" && (
+            <div className="mt-4 rounded border bg-white p-4 text-sm">
+              <div>
+                Module <b>{searchRes.moduleId}</b> found in pack <b>{searchRes.packId}</b>
+              </div>
+              <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(searchRes.pack.modules).map(([mid, cells]: any) => (
+                  <div key={mid}>
+                    <div className={"font-semibold " + (mid === searchRes.moduleId ? "text-emerald-700" : "")}>{mid}</div>
+                    <ul className="mt-1 text-xs grid grid-cols-2 gap-x-4">
+                      {cells.map((c: string) => (
+                        <li key={c} className="truncate">{c}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Help */}
