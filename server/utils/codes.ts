@@ -6,9 +6,11 @@ import { CODES_DIR } from "./db";
 export type CodeType = "barcode" | "qr";
 
 // Printing spec @ 203 DPI
-const QR_SIDE_PX = 197; // 25 mm square ≈ 197 px @ 203 dpi (as requested)
+const STICKER_W_PX = 394; // 50 mm width
+const STICKER_H_PX = 197; // 25 mm height
+const QR_SIDE_PX = 157; // 20 mm square ≈ 157 px @ 203 dpi
 const BARCODE_W_PX = 315; // 40 mm wide
-const BARCODE_H_PX = Math.round(118 * 0.7); // trim height by 30% → ~83 px
+const BARCODE_H_PX = 118; // 15 mm tall
 
 function outputPath(filename: string) {
   return path.join(CODES_DIR, filename);
@@ -38,7 +40,7 @@ async function generateBarcodePng(
     includetext: true,
     textxalign: "center",
     alttext: humanText,
-    textsize: 14,
+    textsize: 18,
     backgroundcolor: "FFFFFF",
     paddingwidth: margin,
     paddingheight: margin,
@@ -51,7 +53,7 @@ async function generateQrPng(
   payload: string,
   _humanText: string,
 ): Promise<Buffer> {
-  // Generate 25 mm square QR @ 203 DPI
+  // Generate 20 mm square QR @ 203 DPI
   const side = QR_SIDE_PX;
   const margin = 8; // ≥1mm margin @203dpi
   return await bwipjs.toBuffer({
@@ -59,10 +61,6 @@ async function generateQrPng(
     text: payload,
     eclevel: "M",
     scale: 3,
-    includetext: true,
-    textxalign: "center",
-    alttext: _humanText,
-    textsize: 14,
     backgroundcolor: "FFFFFF",
     paddingwidth: margin,
     paddingheight: margin,
@@ -112,9 +110,9 @@ export async function generateCodes(
     m2Buf = await generateBarcodePng(m2Payload, m2Human);
     masterBuf = await generateBarcodePng(masterPayload, masterHuman);
   } else {
-    m1Name = `${module1Id}_QR_25mm_203dpi.png`;
-    m2Name = `${module2Id}_QR_25mm_203dpi.png`;
-    masterName = `${packId}_MASTER_QR_25mm_203dpi.png`;
+    m1Name = `${module1Id}_QR_20mm_203dpi.png`;
+    m2Name = `${module2Id}_QR_20mm_203dpi.png`;
+    masterName = `${packId}_MASTER_QR_20mm_203dpi.png`;
     m1Buf = await generateQrPng(m1Payload, m1Human);
     m2Buf = await generateQrPng(m2Payload, m2Human);
     masterBuf = await generateQrPng(masterPayload, masterHuman);
