@@ -8,7 +8,7 @@ export type CodeType = "barcode" | "qr";
 // Printing spec @ 203 DPI
 const QR_SIDE_PX = 197; // 25 mm square ≈ 197 px @ 203 dpi (as requested)
 const BARCODE_W_PX = 315; // 40 mm wide
-const BARCODE_H_PX = 118; // 15 mm tall
+const BARCODE_H_PX = Math.round(118 * 0.7); // trim height by 30% → ~83 px
 
 function outputPath(filename: string) {
   return path.join(CODES_DIR, filename);
@@ -28,7 +28,7 @@ async function generateBarcodePng(
   humanText: string,
 ): Promise<Buffer> {
   // 40×15 mm canvas at 203 DPI with margins, include human-readable text
-  const margin = 6;
+  const margin = 8; // ≥1mm margin @203dpi
   const width = BARCODE_W_PX - margin * 2;
   const height = BARCODE_H_PX - margin * 2;
   return await bwipjs.toBuffer({
@@ -38,6 +38,7 @@ async function generateBarcodePng(
     includetext: true,
     textxalign: "center",
     alttext: humanText,
+    textsize: 14,
     backgroundcolor: "FFFFFF",
     paddingwidth: margin,
     paddingheight: margin,
@@ -52,12 +53,16 @@ async function generateQrPng(
 ): Promise<Buffer> {
   // Generate 25 mm square QR @ 203 DPI
   const side = QR_SIDE_PX;
-  const margin = 4;
+  const margin = 8; // ≥1mm margin @203dpi
   return await bwipjs.toBuffer({
     bcid: "qrcode",
     text: payload,
     eclevel: "M",
     scale: 3,
+    includetext: true,
+    textxalign: "center",
+    alttext: _humanText,
+    textsize: 14,
     backgroundcolor: "FFFFFF",
     paddingwidth: margin,
     paddingheight: margin,
