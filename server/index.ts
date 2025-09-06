@@ -44,5 +44,10 @@ export function createServer() {
   app.post("/api/db", uploadDB);
   app.get("/api/search", search);
 
+  // Config endpoints
+  app.get("/api/config", (req, res) => import("./routes/packs").then(m => m.getConfig(req, res)));
+  app.put("/api/config", (req, res) => import("./routes/packs").then(m => m.updateConfig(req, res)));
+  app.get("/api/next-pack-serial", (req, res) => import("./routes/packs").then(m => m.nextSerialPreview(req, res)));
+
   return app;
 }
