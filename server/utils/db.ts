@@ -10,16 +10,13 @@ export interface PackDoc {
   created_at: string;
   created_by: string | null;
   modules: Record<string, string[]>; // module_id -> cells
-  codes: {
-    module1: string; // public URL path like /files/codes/...
-    module2: string;
-    master: string;
-  };
+  codes: Record<string, string>; // keys: module1, module2, optional module3, master
 }
 
 export interface Config {
   model: "LFP6" | "LFP9";
   batch: string; // 3-digit string
+  modulesEnabled: { m1: boolean; m2: boolean; m3: boolean };
 }
 
 export interface BatteryDB {
@@ -34,7 +31,7 @@ export function ensureDataDirs() {
 
 export function readDB(): BatteryDB {
   ensureDataDirs();
-  const defaultCfg: Config = { model: "LFP9", batch: "001" };
+  const defaultCfg: Config = { model: "LFP9", batch: "001", modulesEnabled: { m1: true, m2: true, m3: false } };
   if (!fs.existsSync(DB_PATH)) {
     const empty: BatteryDB = { packs: {}, config: defaultCfg };
     fs.writeFileSync(DB_PATH, JSON.stringify(empty, null, 2));
@@ -45,6 +42,9 @@ export function readDB(): BatteryDB {
     const parsed = JSON.parse(raw) as BatteryDB;
     if (!parsed.packs) parsed.packs = {} as any;
     if (!parsed.config) parsed.config = defaultCfg;
+    if (!(parsed.config as any).modulesEnabled) {
+      (parsed.config as any).modulesEnabled = { m1: true, m2: true, m3: false };
+    }
     return parsed;
   } catch {
     return { packs: {}, config: defaultCfg };
@@ -64,6 +64,9 @@ export function readConfig() {
 export function writeConfig(partial: Partial<Config>) {
   const db = readDB();
   db.config = { ...db.config, ...partial } as Config;
+  if (!(db.config as any).modulesEnabled) {
+    (db.config as any).modulesEnabled = { m1: true, m2: true, m3: false };
+  }
   writeDB(db);
   return db.config;
 }
