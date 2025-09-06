@@ -233,50 +233,47 @@ export default function Admin() {
                   </Button>
                 </div>
               </div>
+              {/* Codes preview */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <figure className="border rounded p-3 bg-white shadow-sm">
+                  <img src={current.codes.module1} alt="module1" className="mx-auto h-auto max-w-full object-contain" />
+                  <figcaption className="mt-2 text-center text-xs break-all">{current.codes.module1.split('/').pop()}</figcaption>
+                  <div className="mt-2 flex justify-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => printImage(current.codes.module1)}>Print</Button>
+                    <Button variant="outline" size="sm" onClick={() => downloadImage(current.codes.module1)}>Download</Button>
+                  </div>
+                </figure>
+                <figure className="border rounded p-3 bg-white shadow-sm">
+                  <img src={current.codes.module2} alt="module2" className="mx-auto h-auto max-w-full object-contain" />
+                  <figcaption className="mt-2 text-center text-xs break-all">{current.codes.module2.split('/').pop()}</figcaption>
+                  <div className="mt-2 flex justify-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => printImage(current.codes.module2)}>Print</Button>
+                    <Button variant="outline" size="sm" onClick={() => downloadImage(current.codes.module2)}>Download</Button>
+                  </div>
+                </figure>
+                <figure className="border rounded p-3 bg-white shadow-sm">
+                  <img src={current.codes.master} alt="master" className="mx-auto h-auto max-w-full object-contain" />
+                  <figcaption className="mt-2 text-center text-xs break-all">{current.codes.master.split('/').pop()}</figcaption>
+                  <div className="mt-2 flex justify-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => printImage(current.codes.master)}>Print</Button>
+                    <Button variant="outline" size="sm" onClick={() => downloadImage(current.codes.master)}>Download</Button>
+                  </div>
+                </figure>
+              </div>
+
+              {/* Module editors */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 {Object.keys(current.modules).map((mid) => (
                   <div key={mid} className="border rounded p-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-medium">{mid}</h3>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => printImage(current.codes.module1)}
-                        >
-                          Print Mod 1
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => printImage(current.codes.module2)}
-                        >
-                          Print Mod 2
-                        </Button>
-                      </div>
-                    </div>
+                    <h3 className="font-medium">{mid}</h3>
                     <Textarea
                       className="mt-2"
                       rows={10}
                       value={editing[mid] || ""}
-                      onChange={(e) =>
-                        setEditing((s) => ({ ...s, [mid]: e.target.value }))
-                      }
+                      onChange={(e) => setEditing((s) => ({ ...s, [mid]: e.target.value }))}
                     />
                   </div>
                 ))}
-              </div>
-              <div className="mt-4 border rounded p-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium">Master</h3>
-                  <Button
-                    variant="outline"
-                    onClick={() => printImage(current.codes.master)}
-                  >
-                    Print Master
-                  </Button>
-                </div>
-                <div className="text-xs text-slate-500 mt-2">
-                  Use the Print buttons to print individual codes at exact size.
-                </div>
               </div>
             </div>
           ) : (
