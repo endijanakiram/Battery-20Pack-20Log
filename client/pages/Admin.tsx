@@ -20,6 +20,9 @@ export default function Admin() {
   const [model, setModel] = useState<"LFP6" | "LFP9">("LFP9");
   const [batch, setBatch] = useState("001");
   const [nextSerial, setNextSerial] = useState("");
+  const [m1On, setM1On] = useState(true);
+  const [m2On, setM2On] = useState(true);
+  const [m3On, setM3On] = useState(false);
 
   const [searchQ, setSearchQ] = useState("");
   const [searchInfo, setSearchInfo] = useState<string>("");
