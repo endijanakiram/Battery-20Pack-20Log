@@ -380,6 +380,12 @@ export default function Index() {
           </div>
         </section>
 
+        {errorInfo && (
+          <div className="mt-4 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-800 whitespace-pre-wrap">
+            {errorInfo}
+          </div>
+        )}
+
         {/* Actions */}
         <section className="mt-4 flex flex-wrap gap-2">
           <Button onClick={handleGenerate} disabled={loading}>
