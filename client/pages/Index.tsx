@@ -44,6 +44,7 @@ export default function Index() {
 
   useEffect(() => {
     fetchDB();
+    fetchNext();
   }, []);
 
   async function fetchDB() {
