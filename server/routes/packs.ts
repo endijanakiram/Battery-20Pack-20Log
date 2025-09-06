@@ -285,7 +285,7 @@ export const savePackOnly: RequestHandler = (req, res) => {
   } = req.body as {
     pack_serial?: string;
     module1_cells: string;
-    module2_cells: string;
+    module2_cells?: string;
     operator?: string | null;
     overwrite?: boolean;
   };
@@ -296,22 +296,30 @@ export const savePackOnly: RequestHandler = (req, res) => {
       ? pack_serial.trim()
       : nextPackSerial(db);
 
+  const cfg = readConfig();
+  const enabled = cfg.modulesEnabled || { m1: true, m2: true, m3: false };
+  const requiredCount = enabled.m1 && enabled.m2 && enabled.m3 ? 3 : enabled.m1 && enabled.m2 ? 2 : 1;
+
   const m1 = normalizeLines(module1_cells || "");
-  const m2 = normalizeLines(module2_cells || "");
-  if (m1.length === 0 || m2.length === 0) {
-    return res
-      .status(400)
-      .json({ error: "Both module cell lists are required" });
-  }
+  const m2 = normalizeLines((module2_cells as string) || "");
+  const m3 = normalizeLines((req.body as any).module3_cells || "");
+  if (requiredCount >= 1 && m1.length === 0)
+    return res.status(400).json({ error: "Module 1 cell list is required" });
+  if (requiredCount >= 2 && m2.length === 0)
+    return res.status(400).json({ error: "Module 2 cell list is required" });
+  if (requiredCount >= 3 && m3.length === 0)
+    return res.status(400).json({ error: "Module 3 cell list is required" });
 
   // Check duplicates inside each module
   const dup1 = duplicatesInArray(m1);
   const dup2 = duplicatesInArray(m2);
-  if (dup1.length || dup2.length) {
+  const dup3 = duplicatesInArray(m3);
+  if (dup1.length || dup2.length || dup3.length) {
     return res.status(409).json({
       error: "Duplicate cells within module",
       module1_duplicates: dup1,
       module2_duplicates: dup2,
+      module3_duplicates: dup3,
     });
   }
 
@@ -323,7 +331,7 @@ export const savePackOnly: RequestHandler = (req, res) => {
   // Check duplicates across DB
   const allCells = getAllCells(db);
   const conflicts: { cell: string; pack: string; module: string }[] = [];
-  for (const cell of [...m1, ...m2]) {
+  for (const cell of [...m1, ...m2, ...m3]) {
     const hit = allCells.get(cell);
     if (hit) conflicts.push({ cell, pack: hit.pack, module: hit.module });
   }
@@ -331,18 +339,20 @@ export const savePackOnly: RequestHandler = (req, res) => {
     return res.status(409).json({ error: "Duplicate cells in DB", conflicts });
   }
 
-  const { module1Id, module2Id } = nextModuleIds(db, finalPackSerial);
+  const ids = allocateModuleIds(db, requiredCount);
   const createdAt = new Date().toISOString();
+
+  const modules: Record<string, string[]> = {};
+  if (requiredCount >= 1) modules[ids[0]] = m1;
+  if (requiredCount >= 2) modules[ids[1]] = m2;
+  if (requiredCount >= 3) modules[ids[2]] = m3;
 
   const doc: PackDoc = {
     pack_serial: finalPackSerial,
     created_at: createdAt,
     created_by: operator || null,
-    modules: {
-      [module1Id]: m1,
-      [module2Id]: m2,
-    },
-    codes: { module1: "", module2: "", master: "" },
+    modules,
+    codes: { master: "" },
   };
 
   db.packs[finalPackSerial] = doc;
@@ -362,24 +372,20 @@ export const regenerateCodes: RequestHandler = async (req, res) => {
   const pack = db.packs[pack_serial];
   if (!pack) return res.status(404).json({ error: "Pack not found" });
   const moduleIds = Object.keys(pack.modules);
-  if (moduleIds.length < 2)
+  if (moduleIds.length < 1)
     return res.status(400).json({ error: "Pack missing modules" });
-  const [m1, m2] = moduleIds;
   try {
-    const files = await generateCodes(
+    const bundle = await generateCodes(
       code_type || "barcode",
-      m1,
-      m2,
+      moduleIds,
       pack_serial,
       pack.created_at,
     );
-    pack.codes = {
-      module1: files.module1Url,
-      module2: files.module2Url,
-      master: files.masterUrl,
-    };
+    const codes: Record<string, string> = { master: bundle.masterUrl };
+    for (const id of moduleIds) codes[id] = bundle.moduleUrls[id];
+    pack.codes = codes;
     writeDB(db);
-    return res.json({ ok: true, pack, files: pack.codes });
+    return res.json({ ok: true, pack, files: { modules: bundle.moduleUrls, master: bundle.masterUrl } });
   } catch (err: any) {
     return res.status(500).json({
       error: "Failed to regenerate codes",
