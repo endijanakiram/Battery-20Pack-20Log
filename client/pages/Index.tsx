@@ -200,6 +200,13 @@ export default function Index() {
     setLastFiles({});
   }
 
+  function printImage(url: string) {
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write(`<html><head><title>Print</title></head><body style="margin:0"><img src="${url}" onload="window.print();window.close();" /></body></html>`);
+    w.document.close();
+  }
+
   const brand = {
     title: "Battery Pack Data Log",
     subtitle: "Generate modules, enforce uniqueness, and print 20×20 mm codes",
