@@ -123,15 +123,39 @@ export default function Admin() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6 grid grid-cols-1 md:grid-cols-12 gap-6">
-        <aside className="md:col-span-4 border rounded p-3 bg-slate-50">
-          <h3 className="font-semibold mb-2">Packs</h3>
-          <div className="space-y-2 max-h-[60vh] overflow-auto">
-            {packs.map((p) => (
-              <button key={p.pack_serial} className={`w-full text-left rounded px-3 py-2 border ${selected === p.pack_serial ? "bg-emerald-100 border-emerald-300" : "bg-white hover:bg-slate-50"}`} onClick={() => setSelected(p.pack_serial)}>
-                <div className="font-medium">{p.pack_serial}</div>
-                <div className="text-xs text-slate-500">{new Date(p.created_at).toLocaleString()} · {p.created_by || "—"}</div>
-              </button>
-            ))}
+        <aside className="md:col-span-4 space-y-4">
+          <div className="border rounded p-3 bg-slate-50">
+            <h3 className="font-semibold mb-2">Config</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium">Model</label>
+                <select className="mt-1 w-full border rounded px-2 py-2" value={model} onChange={(e) => setModel(e.target.value as any)}>
+                  <option value="LFP6">LFP6</option>
+                  <option value="LFP9">LFP9</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Batch (3 digits)</label>
+                <input className="mt-1 w-full border rounded px-2 py-2" value={batch} onChange={(e) => setBatch(e.target.value)} maxLength={3} />
+              </div>
+            </div>
+            <div className="mt-3 flex gap-2">
+              <Button variant="outline" onClick={saveConfig}>Save Config</Button>
+              <Button variant="ghost" onClick={previewNext}>Preview Next</Button>
+            </div>
+            <div className="mt-2 text-xs text-slate-600">Next pack serial: <b>{nextSerial}</b></div>
+          </div>
+
+          <div className="border rounded p-3 bg-slate-50">
+            <h3 className="font-semibold mb-2">Packs</h3>
+            <div className="space-y-2 max-h-[50vh] overflow-auto">
+              {packs.map((p) => (
+                <button key={p.pack_serial} className={`w-full text-left rounded px-3 py-2 border ${selected === p.pack_serial ? "bg-emerald-100 border-emerald-300" : "bg-white hover:bg-slate-50"}`} onClick={() => setSelected(p.pack_serial)}>
+                  <div className="font-medium">{p.pack_serial}</div>
+                  <div className="text-xs text-slate-500">{new Date(p.created_at).toLocaleString()} · {p.created_by || "—"}</div>
+                </button>
+              ))}
+            </div>
           </div>
         </aside>
 
