@@ -282,6 +282,82 @@ export const generateMasterOnly: RequestHandler = async (req, res) => {
   }
 };
 
+export const savePackOnly: RequestHandler = (req, res) => {
+  const {
+    pack_serial,
+    module1_cells,
+    module2_cells,
+    operator,
+    overwrite,
+  } = req.body as {
+    pack_serial?: string;
+    module1_cells: string;
+    module2_cells: string;
+    operator?: string | null;
+    overwrite?: boolean;
+  };
+
+  const db = readDB();
+  const finalPackSerial =
+    pack_serial && pack_serial.trim().length
+      ? pack_serial.trim()
+      : nextPackSerial(db);
+
+  const m1 = normalizeLines(module1_cells || "");
+  const m2 = normalizeLines(module2_cells || "");
+  if (m1.length === 0 || m2.length === 0) {
+    return res
+      .status(400)
+      .json({ error: "Both module cell lists are required" });
+  }
+
+  // Check duplicates inside each module
+  const dup1 = duplicatesInArray(m1);
+  const dup2 = duplicatesInArray(m2);
+  if (dup1.length || dup2.length) {
+    return res.status(409).json({
+      error: "Duplicate cells within module",
+      module1_duplicates: dup1,
+      module2_duplicates: dup2,
+    });
+  }
+
+  // Check pack exists
+  if (db.packs[finalPackSerial] && !overwrite) {
+    return res.status(409).json({ error: "Pack already exists", exists: true });
+  }
+
+  // Check duplicates across DB
+  const allCells = getAllCells(db);
+  const conflicts: { cell: string; pack: string; module: string }[] = [];
+  for (const cell of [...m1, ...m2]) {
+    const hit = allCells.get(cell);
+    if (hit) conflicts.push({ cell, pack: hit.pack, module: hit.module });
+  }
+  if (conflicts.length) {
+    return res.status(409).json({ error: "Duplicate cells in DB", conflicts });
+  }
+
+  const { module1Id, module2Id } = nextModuleIds(db, finalPackSerial);
+  const createdAt = new Date().toISOString();
+
+  const doc: PackDoc = {
+    pack_serial: finalPackSerial,
+    created_at: createdAt,
+    created_by: operator || null,
+    modules: {
+      [module1Id]: m1,
+      [module2Id]: m2,
+    },
+    codes: { module1: "", module2: "", master: "" },
+  };
+
+  db.packs[finalPackSerial] = doc;
+  writeDB(db);
+
+  return res.json({ ok: true, pack: doc });
+};
+
 export const regenerateCodes: RequestHandler = async (req, res) => {
   const { pack_serial, code_type } = req.body as {
     pack_serial: string;
