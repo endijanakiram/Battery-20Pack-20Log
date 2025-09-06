@@ -229,18 +229,38 @@ export default function Index() {
   }
 
   function printImage(url: string) {
+    const name = url.split("/").pop() || "code.png";
+    const isQR = /_QR_/.test(name);
+    const isBar = /_BARCODE_/.test(name);
+    const widthMM = isQR ? 25 : isBar ? 40 : 50;
+    const heightMM = isQR ? 25 : isBar ? 15 : 25;
     const w = window.open("", "_blank");
     if (!w) return;
-    w.document.write(
-      `<html><head><title>Print</title></head><body style="margin:0"><img src="${url}" onload="window.print();window.close();" /></body></html>`,
-    );
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Print ${name}</title>
+<style>
+  @page { size: auto; margin: 0; }
+  html, body { height: 100%; }
+  body { margin: 0; display: flex; align-items: center; justify-content: center; }
+  img { width: ${widthMM}mm; height: ${heightMM}mm; object-fit: contain; }
+</style>
+</head>
+<body>
+  <img src="${url}" onload="window.focus(); window.print();" />
+</body>
+</html>`;
+    w.document.open();
+    w.document.write(html);
     w.document.close();
   }
 
   const brand = {
     title: "Battery Pack Data Log",
     subtitle:
-      "Generate modules, enforce uniqueness, and print 25×50 mm codes @ 240 DPI",
+      "Generate modules, enforce uniqueness, and print QR 25mm / Code128 40×15mm @ 203 DPI",
   };
 
   return (
@@ -535,8 +555,7 @@ export default function Index() {
         {/* Help */}
         <section className="mt-10 text-xs text-slate-500">
           <p>
-            Label printing spec: 25×50 mm at 240 DPI. Generated PNGs target
-            ~236×472 px canvas. Use per-code Print buttons for exact sizing.
+            Label printing spec: QR 25×25 mm (~197 px @ 203 DPI) and Code128 40×15 mm (315×118 px @ 203 DPI). Use Print for accurate sizing and printer selection.
           </p>
         </section>
       </main>
