@@ -252,21 +252,20 @@ export const generateMasterOnly: RequestHandler = async (req, res) => {
   const db = readDB();
   const pack = db.packs[pack_serial];
   if (!pack) return res.status(404).json({ error: "Pack not found" });
-  const [m1, m2] = Object.keys(pack.modules);
-  if (!m1 || !m2)
+  const ids = Object.keys(pack.modules);
+  if (!ids.length)
     return res.status(400).json({ error: "Pack missing modules" });
   try {
-    const files = await generateCodes(
+    const bundle = await generateCodes(
       code_type || "barcode",
-      m1,
-      m2,
+      ids,
       pack_serial,
       pack.created_at,
     );
     // update only master url
-    pack.codes.master = files.masterUrl;
+    pack.codes.master = bundle.masterUrl;
     writeDB(db);
-    return res.json({ ok: true, master: files.masterUrl, pack });
+    return res.json({ ok: true, master: bundle.masterUrl, pack });
   } catch (err: any) {
     return res.status(500).json({
       error: "Failed to generate master code",
