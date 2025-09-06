@@ -358,9 +358,6 @@ export default function Index() {
           <Button variant="outline" onClick={handleExportZip}>
             Export ZIP
           </Button>
-          <Button variant="outline" onClick={() => window.print()}>
-            Print
-          </Button>
           <div className="ml-auto text-sm text-slate-500 flex items-center gap-3">
             <span>Total packs: {packsCount}</span>
           </div>
