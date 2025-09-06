@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 import bwipjs from "bwip-js";
-import QRCode from "qrcode";
 import { CODES_DIR } from "./db";
 
 export type CodeType = "barcode" | "qr";
@@ -68,15 +67,31 @@ async function generateQrPng(
   } as any);
 }
 
+function toDateOnly(iso: string): string {
+  try {
+    return new Date(iso).toISOString().slice(0, 10);
+  } catch {
+    return new Date().toISOString().slice(0, 10);
+  }
+}
+
 export async function generateCodes(
   codeType: CodeType,
   module1Id: string,
   module2Id: string,
   packId: string,
+  createdAtISO: string,
 ): Promise<GeneratedFiles> {
-  const m1Payload = `M:${module1Id}`;
-  const m2Payload = `M:${module2Id}`;
-  const masterPayload = `P:${packId}|MS:${module1Id},${module2Id}`;
+  const dateOnly = toDateOnly(createdAtISO);
+
+  // Payloads must contain only the serial number and the creation date
+  const m1Payload = `${module1Id}|${dateOnly}`;
+  const m2Payload = `${module2Id}|${dateOnly}`;
+  const masterPayload = `${packId}|${dateOnly}`;
+
+  const m1Human = `${module1Id} ${dateOnly}`;
+  const m2Human = `${module2Id} ${dateOnly}`;
+  const masterHuman = `${packId} ${dateOnly}`;
 
   const m1Name = `${module1Id}_code_25x50mm_240dpi.png`;
   const m2Name = `${module2Id}_code_25x50mm_240dpi.png`;
@@ -87,23 +102,14 @@ export async function generateCodes(
   let masterBuf: Buffer;
 
   if (codeType === "barcode") {
-    m1Buf = await generateBarcodePng(m1Payload, module1Id);
-    m2Buf = await generateBarcodePng(m2Payload, module2Id);
-    masterBuf = await generateBarcodePng(masterPayload, packId);
+    m1Buf = await generateBarcodePng(m1Payload, m1Human);
+    m2Buf = await generateBarcodePng(m2Payload, m2Human);
+    masterBuf = await generateBarcodePng(masterPayload, masterHuman);
   } else {
-    // QR with compact JSON payloads per spec
-    const m1QR = JSON.stringify({ t: "m", m: module1Id });
-    const masterQR = JSON.stringify({
-      t: "p",
-      p: packId,
-      ms: [module1Id, module2Id],
-    });
-    m1Buf = await generateQrPng(m1QR, module1Id);
-    m2Buf = await generateQrPng(
-      JSON.stringify({ t: "m", m: module2Id }),
-      module2Id,
-    );
-    masterBuf = await generateQrPng(masterQR, packId);
+    // QR with plain string payloads
+    m1Buf = await generateQrPng(m1Payload, m1Human);
+    m2Buf = await generateQrPng(m2Payload, m2Human);
+    masterBuf = await generateQrPng(masterPayload, masterHuman);
   }
 
   // Write files
