@@ -21,6 +21,13 @@ export default function Admin() {
   const [batch, setBatch] = useState("001");
   const [nextSerial, setNextSerial] = useState("");
 
+  const [searchQ, setSearchQ] = useState("");
+  const [searchInfo, setSearchInfo] = useState<string>("");
+  const [dateFilter, setDateFilter] = useState<string>("");
+  const [batchFilter, setBatchFilter] = useState<string>("");
+  const [monthFilter, setMonthFilter] = useState<string>("");
+  const [yearFilter, setYearFilter] = useState<string>("");
+
   useEffect(() => {
     if (localStorage.getItem("auth_role") !== "admin") {
       nav("/");
@@ -66,9 +73,42 @@ export default function Admin() {
   }
 
   const total = useMemo(() => packs.length, [packs]);
+
+  const filteredPacks = useMemo(() => {
+    return packs.filter((p) => {
+      // Date filter (YYYY-MM-DD)
+      if (dateFilter) {
+        const d = new Date(p.created_at).toISOString().slice(0, 10);
+        if (d !== dateFilter) return false;
+      }
+      // Parse from pack_serial: RIV YY MM MODEL(4) BATCH(3) UNIT(4)
+      const m = p.pack_serial.match(/^RIV(\d{2})(\d{2})(LFP6|LFP9)(\d{3})(\d{4})$/);
+      const YY = m ? m[1] : null;
+      const MM = m ? m[2] : null;
+      const BATCH = m ? m[4] : null;
+      const created = new Date(p.created_at);
+      // Month filter
+      if (monthFilter) {
+        const mm = String(created.getMonth() + 1).padStart(2, "0");
+        if (mm !== String(monthFilter).padStart(2, "0")) return false;
+      }
+      // Year filter
+      if (yearFilter) {
+        const yr = String(created.getFullYear());
+        const yf = yearFilter.length === 2 ? `20${yearFilter}` : yearFilter;
+        if (yr !== yf) return false;
+      }
+      // Batch filter
+      if (batchFilter) {
+        if (!BATCH || BATCH !== batchFilter.padStart(3, "0")) return false;
+      }
+      return true;
+    });
+  }, [packs, dateFilter, batchFilter, monthFilter, yearFilter]);
+
   const current = useMemo(
-    () => packs.find((p) => p.pack_serial === selected) || null,
-    [packs, selected],
+    () => filteredPacks.find((p) => p.pack_serial === selected) || filteredPacks[0] || null,
+    [filteredPacks, selected],
   );
 
   useEffect(() => {
@@ -233,8 +273,56 @@ export default function Admin() {
 
           <div className="border rounded p-3 bg-slate-50">
             <h3 className="font-semibold mb-2">Packs</h3>
+
+            <div className="mb-3 space-y-2">
+              <div className="flex gap-2">
+                <Input placeholder="Trace by pack/module/cell" value={searchQ} onChange={(e) => setSearchQ(e.target.value)} />
+                <Button variant="outline" onClick={async () => {
+                  const q = searchQ.trim();
+                  if (!q) return;
+                  const r = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+                  const j = await r.json();
+                  if (j && (j.type === 'pack' || j.type === 'cell' || j.type === 'module')) {
+                    setSelected(j.pack.pack_serial);
+                    setSearchInfo(j.type === 'pack' ? `Opened pack ${j.pack.pack_serial}` : j.type === 'cell' ? `Cell ${j.cell} found in ${j.pack.pack_serial} / ${j.moduleId}` : `Module ${j.moduleId} found in ${j.pack.pack_serial}`);
+                  } else {
+                    setSearchInfo('Not found');
+                  }
+                }}>Search</Button>
+              </div>
+              {searchInfo && <div className="text-xs text-slate-500">{searchInfo}</div>}
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs">Date</label>
+                  <Input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs">Batch</label>
+                  <Input value={batchFilter} maxLength={3} onChange={(e) => setBatchFilter(e.target.value)} placeholder="001" />
+                </div>
+                <div>
+                  <label className="text-xs">Month</label>
+                  <select className="w-full border rounded px-2 py-2" value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)}>
+                    <option value="">All</option>
+                    {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs">Year</label>
+                  <Input value={yearFilter} onChange={(e) => setYearFilter(e.target.value)} placeholder="2025" />
+                </div>
+              </div>
+              <div className="flex gap-2 mt-2">
+                <Button variant="outline" size="sm" onClick={() => { setDateFilter(""); setBatchFilter(""); setMonthFilter(""); setYearFilter(""); }}>Clear Filters</Button>
+                <div className="text-xs text-slate-500 self-center">Showing {filteredPacks.length} / {packs.length}</div>
+              </div>
+            </div>
+
             <div className="space-y-2 max-h-[50vh] overflow-auto">
-              {packs.map((p) => (
+              {filteredPacks.map((p) => (
                 <button
                   key={p.pack_serial}
                   className={`w-full text-left rounded px-3 py-2 border ${selected === p.pack_serial ? "bg-emerald-100 border-emerald-300" : "bg-white hover:bg-slate-50"}`}
