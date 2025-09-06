@@ -139,10 +139,12 @@ export default function Index() {
       const data = (await res.json()) as GenerateResponse;
       if (!data.ok) throw new Error("Failed");
       setLastFiles(data.files);
+      setPackSerial(data.pack.pack_serial);
       setDb((prev) => ({
         packs: { ...prev.packs, [data.pack.pack_serial]: data.pack },
       }));
       toast.success("Generated 3 code PNGs");
+      fetchNext();
     } catch (e: any) {
       toast.error(e?.message || "Error generating pack");
     } finally {
