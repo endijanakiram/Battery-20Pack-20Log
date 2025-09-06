@@ -60,24 +60,27 @@ function nextModuleIds(
 }
 
 function nextPackSerial(db: BatteryDB): string {
-  let prefix = "PK";
-  let maxPad = 8;
-  let maxNum = 0;
+  // RIV + YY + MM + MODEL(4) + BATCH(3) + UNIT(4)
+  const cfg = readConfig();
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(-2);
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const model = cfg.model; // LFP6 or LFP9
+  const batch = (cfg.batch || "001").padStart(3, "0");
+  const prefix = `RIV${yy}${mm}${model}${batch}`;
+
+  let maxUnit = 0;
   for (const id of Object.keys(db.packs)) {
-    const m = id.match(/^(\D*)(\d+)$/);
-    if (m) {
-      const p = m[1] || "";
-      const num = parseInt(m[2], 10);
-      const pad = m[2].length;
-      if (num > maxNum) {
-        maxNum = num;
-        maxPad = pad;
-        prefix = p || prefix;
+    if (id.startsWith(prefix)) {
+      const unit = id.slice(prefix.length);
+      if (/^\d{4}$/.test(unit)) {
+        const n = parseInt(unit, 10);
+        if (n > maxUnit) maxUnit = n;
       }
     }
   }
-  const next = maxNum + 1 || 1;
-  return `${prefix}${String(next).padStart(maxPad, "0")}`;
+  const next = (maxUnit + 1) || 1;
+  return `${prefix}${String(next).padStart(4, "0")}`;
 }
 
 export const generatePack: RequestHandler = async (req, res) => {
