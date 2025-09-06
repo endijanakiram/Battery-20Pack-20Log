@@ -153,7 +153,7 @@ export default function Admin() {
               nav("/");
             }}
           >
-            Sign out
+            Logout
           </Button>
         </div>
       </header>
