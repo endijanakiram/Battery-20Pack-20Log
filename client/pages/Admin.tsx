@@ -114,6 +114,18 @@ export default function Admin() {
     }
   }
 
+  function downloadImage(url: string) {
+    fetch(url)
+      .then((r) => r.blob())
+      .then((b) => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(b);
+        a.download = url.split("/").pop() || "code.png";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
+  }
+
   function printImage(url: string) {
     const w = window.open("", "_blank");
     if (!w) return;
