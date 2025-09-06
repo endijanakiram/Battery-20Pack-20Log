@@ -6,7 +6,11 @@ import { CODES_DIR } from "./db";
 
 export type CodeType = "barcode" | "qr";
 
-const PX = 236; // 20mm @ 300dpi
+const DPI = 240; // New spec
+const MM_W = 50;
+const MM_H = 25;
+const WIDTH_PX = Math.round((MM_W / 25.4) * DPI); // ~472
+const HEIGHT_PX = Math.round((MM_H / 25.4) * DPI); // ~236
 
 function outputPath(filename: string) {
   return path.join(CODES_DIR, filename);
@@ -25,11 +29,10 @@ async function generateBarcodePng(
   payload: string,
   humanText: string,
 ): Promise<Buffer> {
-  // Create a Code128 barcode PNG sized to fit inside the 236x236 canvas with margins
-  // bwip-js will include text below
+  // 50x25mm canvas at 240 DPI with margins, includetext under code
   const margin = 8;
-  const width = PX - margin * 2;
-  const height = PX - margin * 2;
+  const width = WIDTH_PX - margin * 2;
+  const height = HEIGHT_PX - margin * 2;
   return await bwipjs.toBuffer({
     bcid: "code128",
     text: payload,
@@ -47,19 +50,23 @@ async function generateBarcodePng(
 
 async function generateQrPng(
   payload: string,
-  humanText: string,
+  _humanText: string,
 ): Promise<Buffer> {
-  // Generate QR at high quality then expand to 236x236 with built-in margin.
-  // qrcode will embed quiet zone; human text not embedded to keep compatibility.
-  // We still set margin to produce adequate white space.
-  const buf = await QRCode.toBuffer(payload, {
-    errorCorrectionLevel: "M",
-    type: "png",
-    width: PX,
-    margin: 1,
-    color: { dark: "#000000", light: "#FFFFFF" },
-  });
-  return buf;
+  // Use bwip-js qrcode to conform to exact canvas size (centered in 50x25mm)
+  const margin = 8;
+  const width = WIDTH_PX - margin * 2;
+  const height = HEIGHT_PX - margin * 2;
+  return await bwipjs.toBuffer({
+    bcid: "qrcode",
+    text: payload,
+    eclevel: "M",
+    scale: 3,
+    backgroundcolor: "FFFFFF",
+    paddingwidth: margin,
+    paddingheight: margin,
+    width,
+    height,
+  } as any);
 }
 
 export async function generateCodes(
@@ -72,9 +79,9 @@ export async function generateCodes(
   const m2Payload = `M:${module2Id}`;
   const masterPayload = `P:${packId}|MS:${module1Id},${module2Id}`;
 
-  const m1Name = `${module1Id}_code_20mm.png`;
-  const m2Name = `${module2Id}_code_20mm.png`;
-  const masterName = `${packId}_MASTER_code_20mm.png`;
+  const m1Name = `${module1Id}_code_25x50mm_240dpi.png`;
+  const m2Name = `${module2Id}_code_25x50mm_240dpi.png`;
+  const masterName = `${packId}_MASTER_code_25x50mm_240dpi.png`;
 
   let m1Buf: Buffer;
   let m2Buf: Buffer;
