@@ -84,7 +84,8 @@ export const generatePack: RequestHandler = async (req, res) => {
   } = req.body as {
     pack_serial?: string;
     module1_cells: string;
-    module2_cells: string;
+    module2_cells?: string;
+    module3_cells?: string;
     code_type: CodeType;
     operator?: string | null;
     overwrite?: boolean;
