@@ -59,6 +59,16 @@ export default function Index() {
 
   const packsCount = useMemo(() => Object.keys(db.packs).length, [db]);
 
+  async function fetchNext() {
+    try {
+      const r = await fetch("/api/next-pack-serial");
+      if (r.ok) {
+        const j = await r.json();
+        setNextSerial(j.next);
+      }
+    } catch {}
+  }
+
   function normLines(text: string) {
     return text
       .split(/\r?\n/)
