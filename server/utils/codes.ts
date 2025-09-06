@@ -38,7 +38,7 @@ async function generateBarcodePng(
     scale: 3, // scale up for clarity, bwip will fit to width/height
     includetext: true,
     textxalign: "center",
-    text: humanText,
+    alttext: humanText,
     backgroundcolor: "FFFFFF",
     paddingwidth: margin,
     paddingheight: margin,
