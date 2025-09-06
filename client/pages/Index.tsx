@@ -77,14 +77,11 @@ export default function Index() {
   }
 
   async function handleGenerate() {
-    if (!packSerial.trim()) {
-      toast.error("Enter pack serial");
-      return;
-    }
     if (!m1.trim() || !m2.trim()) {
       toast.error("Paste both module cell lists");
       return;
     }
+    setErrorInfo("");
     setLoading(true);
     try {
       let res = await fetch("/api/packs/generate", {
