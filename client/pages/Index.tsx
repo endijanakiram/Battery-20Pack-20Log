@@ -310,43 +310,6 @@ export default function Index() {
             <p className="text-xs text-slate-500">{brand.subtitle}</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={fetchDB}>
-              Load DB
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                fetch("/api/db", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(db),
-                })
-                  .then(() => toast.success("Saved DB"))
-                  .catch(() => toast.error("Save failed"));
-              }}
-            >
-              Save DB
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() =>
-                toast("Use Google Drive by configuring server credentials.")
-              }
-            >
-              Sign in to Google Drive
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => toast("Upload to Drive not configured")}
-            >
-              Upload DB to Drive
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => toast("Download from Drive not configured")}
-            >
-              Download DB from Drive
-            </Button>
             <Button
               variant="ghost"
               onClick={() => { localStorage.removeItem("auth_role"); nav("/"); }}
