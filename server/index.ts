@@ -2,13 +2,11 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import path from "path";
-import { handleDemo } from "./routes/demo";
 import { ensureDataDirs, DATA_DIR } from "./utils/db";
 import {
   generatePack,
   generateMasterOnly,
   getDB,
-  uploadDB,
   search,
 } from "./routes/packs";
 
@@ -31,17 +29,13 @@ export function createServer() {
     const ping = process.env.PING_MESSAGE ?? "ping";
     res.json({ message: ping });
   });
-  app.get("/api/demo", handleDemo);
 
   // Battery pack APIs
   app.post("/api/packs/generate", generatePack);
-  app.post("/api/packs/save-only", (req, res, next) =>
-    import("./routes/packs").then((m) => m.savePackOnly(req, res, next)),
-  );
+
+
   app.post("/api/packs/master-only", generateMasterOnly);
-  app.post("/api/packs/save-only", (req, res, next) =>
-    import("./routes/packs").then((m) => m.savePackOnly(req, res, next)),
-  );
+
   app.post("/api/packs/regenerate", (req, res, next) =>
     import("./routes/packs").then((m) => m.regenerateCodes(req, res, next)),
   );
@@ -58,7 +52,6 @@ export function createServer() {
     import("./routes/packs").then((m) => m.deletePack(req, res, next)),
   );
   app.get("/api/db", getDB);
-  app.post("/api/db", uploadDB);
   app.get("/api/search", search);
 
   // Config endpoints
