@@ -18,10 +18,7 @@ function normalizeLines(input: string): string[] {
     .filter((s) => s.length > 0);
 }
 
-function nextModuleIds(
-  db: BatteryDB,
-  _packSerial: string,
-): { module1Id: string; module2Id: string } {
+function allocateModuleIds(db: BatteryDB, count: number): string[] {
   // New module serial format: MLFP + DDYY + NNNNN (auto-increment per day)
   const now = new Date();
   const dd = String(now.getDate()).padStart(2, "0");
@@ -41,21 +38,15 @@ function nextModuleIds(
     }
   }
 
-  // Propose next two ids, skipping any that are already used
   const nextId = (n: number) => `${prefix}${String(n).padStart(5, "0")}`;
-  let n1 = Math.max(1, max + 1);
-  let m1 = nextId(n1);
-  while (used.has(m1)) {
-    n1++;
-    m1 = nextId(n1);
+  const out: string[] = [];
+  let n = Math.max(1, max + 1);
+  while (out.length < count) {
+    const cand = nextId(n);
+    if (!used.has(cand)) out.push(cand);
+    n++;
   }
-  let n2 = n1 + 1;
-  let m2 = nextId(n2);
-  while (used.has(m2)) {
-    n2++;
-    m2 = nextId(n2);
-  }
-  return { module1Id: m1, module2Id: m2 };
+  return out;
 }
 
 function nextPackSerial(db: BatteryDB): string {
