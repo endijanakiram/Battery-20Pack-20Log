@@ -57,6 +57,27 @@ function nextModuleIds(
   return { module1Id: m1, module2Id: m2 };
 }
 
+function nextPackSerial(db: BatteryDB): string {
+  let prefix = "PK";
+  let maxPad = 8;
+  let maxNum = 0;
+  for (const id of Object.keys(db.packs)) {
+    const m = id.match(/^(\D*)(\d+)$/);
+    if (m) {
+      const p = m[1] || "";
+      const num = parseInt(m[2], 10);
+      const pad = m[2].length;
+      if (num > maxNum) {
+        maxNum = num;
+        maxPad = pad;
+        prefix = p || prefix;
+      }
+    }
+  }
+  const next = maxNum + 1 || 1;
+  return `${prefix}${String(next).padStart(maxPad, "0")}`;
+}
+
 export const generatePack: RequestHandler = async (req, res) => {
   const {
     pack_serial,
@@ -66,7 +87,7 @@ export const generatePack: RequestHandler = async (req, res) => {
     operator,
     overwrite,
   } = req.body as {
-    pack_serial: string;
+    pack_serial?: string;
     module1_cells: string;
     module2_cells: string;
     code_type: CodeType;
@@ -74,15 +95,13 @@ export const generatePack: RequestHandler = async (req, res) => {
     overwrite?: boolean;
   };
 
-  if (!pack_serial || typeof pack_serial !== "string") {
-    return res.status(400).json({ error: "pack_serial is required" });
-  }
+  const db = readDB();
+  const finalPackSerial = pack_serial && pack_serial.trim().length ? pack_serial.trim() : nextPackSerial(db);
+
   const m1 = normalizeLines(module1_cells || "");
   const m2 = normalizeLines(module2_cells || "");
   if (m1.length === 0 || m2.length === 0) {
-    return res
-      .status(400)
-      .json({ error: "Both module cell lists are required" });
+    return res.status(400).json({ error: "Both module cell lists are required" });
   }
 
   // Check duplicates inside each module
@@ -96,10 +115,8 @@ export const generatePack: RequestHandler = async (req, res) => {
     });
   }
 
-  const db = readDB();
-
   // Check pack exists
-  if (db.packs[pack_serial] && !overwrite) {
+  if (db.packs[finalPackSerial] && !overwrite) {
     return res.status(409).json({ error: "Pack already exists", exists: true });
   }
 
@@ -114,18 +131,18 @@ export const generatePack: RequestHandler = async (req, res) => {
     return res.status(409).json({ error: "Duplicate cells in DB", conflicts });
   }
 
-  const { module1Id, module2Id } = nextModuleIds(db, pack_serial);
+  const { module1Id, module2Id } = nextModuleIds(db, finalPackSerial);
 
   try {
     const files = await generateCodes(
       code_type || "barcode",
       module1Id,
       module2Id,
-      pack_serial,
+      finalPackSerial,
     );
 
     const doc: PackDoc = {
-      pack_serial,
+      pack_serial: finalPackSerial,
       created_at: new Date().toISOString(),
       created_by: operator || null,
       modules: {
@@ -139,7 +156,7 @@ export const generatePack: RequestHandler = async (req, res) => {
       },
     };
 
-    db.packs[pack_serial] = doc;
+    db.packs[finalPackSerial] = doc;
     writeDB(db);
 
     return res.json({
@@ -152,13 +169,42 @@ export const generatePack: RequestHandler = async (req, res) => {
       },
     });
   } catch (err: any) {
-    return res
-      .status(500)
-      .json({
-        error: "Failed to generate codes",
-        detail: String(err?.message || err),
-      });
+    return res.status(500).json({ error: "Failed to generate codes", detail: String(err?.message || err) });
   }
+};
+
+export const listPacks: RequestHandler = (_req, res) => {
+  const db = readDB();
+  res.json({ packs: Object.values(db.packs) });
+};
+
+export const getPack: RequestHandler = (req, res) => {
+  const id = String(req.params.id);
+  const db = readDB();
+  const pack = db.packs[id];
+  if (!pack) return res.status(404).json({ error: "Not found" });
+  res.json(pack);
+};
+
+export const updatePack: RequestHandler = (req, res) => {
+  const id = String(req.params.id);
+  const { modules } = req.body as { modules: Record<string, string[]> };
+  const db = readDB();
+  const pack = db.packs[id];
+  if (!pack) return res.status(404).json({ error: "Not found" });
+  pack.modules = modules;
+  db.packs[id] = pack;
+  writeDB(db);
+  res.json({ ok: true, pack });
+};
+
+export const deletePack: RequestHandler = (req, res) => {
+  const id = String(req.params.id);
+  const db = readDB();
+  if (!db.packs[id]) return res.status(404).json({ error: "Not found" });
+  delete db.packs[id];
+  writeDB(db);
+  res.json({ ok: true });
 };
 
 export const generateMasterOnly: RequestHandler = async (req, res) => {
