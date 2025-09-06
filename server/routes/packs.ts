@@ -339,6 +339,12 @@ export const search: RequestHandler = (req, res) => {
   if (!q) return res.json({ result: null });
   // If pack id
   if (db.packs[q]) return res.json({ type: "pack", pack: db.packs[q] });
+  // Search module id
+  for (const [pid, pack] of Object.entries(db.packs)) {
+    if (Object.prototype.hasOwnProperty.call(pack.modules, q)) {
+      return res.json({ type: "module", moduleId: q, packId: pid, pack });
+    }
+  }
   // Search cell
   for (const [pid, pack] of Object.entries(db.packs)) {
     for (const [mid, cells] of Object.entries(pack.modules)) {
