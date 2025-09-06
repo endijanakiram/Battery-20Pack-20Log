@@ -266,6 +266,12 @@ export default function Admin() {
                 />
               </div>
             </div>
+            <div className="mt-3 grid grid-cols-3 gap-3">
+              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={m1On} onChange={(e)=>setM1On(e.target.checked)} /> Module 1</label>
+              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={m2On} onChange={(e)=>setM2On(e.target.checked)} /> Module 2</label>
+              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={m3On} onChange={(e)=>setM3On(e.target.checked)} /> Module 3</label>
+              <div className="col-span-3 text-xs text-slate-600">Variant: {m1On && m2On && m3On ? 'Max' : m1On && m2On ? 'Pro' : m1On ? 'Classic' : '—'}</div>
+            </div>
             <div className="mt-3 flex gap-2">
               <Button variant="outline" onClick={saveConfig}>
                 Save Config
