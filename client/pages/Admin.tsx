@@ -372,45 +372,51 @@ export default function Admin() {
 
               {/* Codes preview */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-                <figure className="border rounded p-3 bg-white shadow-sm">
-                  <img src={current.codes.module1} alt="module1" className="mx-auto h-auto max-w-full object-contain" />
-                  <figcaption className="mt-2 text-center text-xs break-all">{current.codes.module1.split('/').pop()}</figcaption>
-                  {/_QR_/.test(current.codes.module1) && (
-                    <div className="text-center text-xs mt-1">
-                      {current.codes.module1.split('/').pop()!.split('_')[0]}
+                {current.codes.module1 && (
+                  <figure className="border rounded p-3 bg-white shadow-sm">
+                    <img src={current.codes.module1} alt="module1" className="mx-auto h-auto max-w-full object-contain" />
+                    <figcaption className="mt-2 text-center text-xs break-all">{current.codes.module1.split('/').pop()}</figcaption>
+                    {/_QR_/.test(current.codes.module1) && (
+                      <div className="text-center text-xs mt-1">
+                        {current.codes.module1.split('/').pop()!.split('_')[0]}
+                      </div>
+                    )}
+                    <div className="mt-2 flex justify-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => printImage(current.codes.module1)}>Print</Button>
+                      <Button variant="outline" size="sm" onClick={() => downloadImage(current.codes.module1)}>Download</Button>
                     </div>
-                  )}
-                  <div className="mt-2 flex justify-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => printImage(current.codes.module1)}>Print</Button>
-                    <Button variant="outline" size="sm" onClick={() => downloadImage(current.codes.module1)}>Download</Button>
-                  </div>
-                </figure>
-                <figure className="border rounded p-3 bg-white shadow-sm">
-                  <img src={current.codes.module2} alt="module2" className="mx-auto h-auto max-w-full object-contain" />
-                  <figcaption className="mt-2 text-center text-xs break-all">{current.codes.module2.split('/').pop()}</figcaption>
-                  {/_QR_/.test(current.codes.module2) && (
-                    <div className="text-center text-xs mt-1">
-                      {current.codes.module2.split('/').pop()!.split('_')[0]}
+                  </figure>
+                )}
+                {current.codes.module2 && (
+                  <figure className="border rounded p-3 bg-white shadow-sm">
+                    <img src={current.codes.module2} alt="module2" className="mx-auto h-auto max-w-full object-contain" />
+                    <figcaption className="mt-2 text-center text-xs break-all">{current.codes.module2.split('/').pop()}</figcaption>
+                    {/_QR_/.test(current.codes.module2) && (
+                      <div className="text-center text-xs mt-1">
+                        {current.codes.module2.split('/').pop()!.split('_')[0]}
+                      </div>
+                    )}
+                    <div className="mt-2 flex justify-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => printImage(current.codes.module2)}>Print</Button>
+                      <Button variant="outline" size="sm" onClick={() => downloadImage(current.codes.module2)}>Download</Button>
                     </div>
-                  )}
-                  <div className="mt-2 flex justify-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => printImage(current.codes.module2)}>Print</Button>
-                    <Button variant="outline" size="sm" onClick={() => downloadImage(current.codes.module2)}>Download</Button>
-                  </div>
-                </figure>
-                <figure className="border rounded p-3 bg-white shadow-sm">
-                  <img src={current.codes.master} alt="master" className="mx-auto h-auto max-w-full object-contain" />
-                  <figcaption className="mt-2 text-center text-xs break-all">{current.codes.master.split('/').pop()}</figcaption>
-                  {/_QR_/.test(current.codes.master) && (
-                    <div className="text-center text-xs mt-1">
-                      {current.codes.master.split('/').pop()!.split('_')[0]}
+                  </figure>
+                )}
+                {current.codes.master && (
+                  <figure className="border rounded p-3 bg-white shadow-sm">
+                    <img src={current.codes.master} alt="master" className="mx-auto h-auto max-w-full object-contain" />
+                    <figcaption className="mt-2 text-center text-xs break-all">{current.codes.master.split('/').pop()}</figcaption>
+                    {/_QR_/.test(current.codes.master) && (
+                      <div className="text-center text-xs mt-1">
+                        {current.codes.master.split('/').pop()!.split('_')[0]}
+                      </div>
+                    )}
+                    <div className="mt-2 flex justify-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => printImage(current.codes.master)}>Print</Button>
+                      <Button variant="outline" size="sm" onClick={() => downloadImage(current.codes.master)}>Download</Button>
                     </div>
-                  )}
-                  <div className="mt-2 flex justify-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => printImage(current.codes.master)}>Print</Button>
-                    <Button variant="outline" size="sm" onClick={() => downloadImage(current.codes.master)}>Download</Button>
-                  </div>
-                </figure>
+                  </figure>
+                )}
               </div>
 
               {/* Module editors */}
