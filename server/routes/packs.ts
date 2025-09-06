@@ -18,7 +18,7 @@ function normalizeLines(input: string): string[] {
 
 function nextModuleIds(
   db: BatteryDB,
-  packSerial: string
+  packSerial: string,
 ): { module1Id: string; module2Id: string } {
   const match = packSerial.match(/^(\D*)(\d+)$/);
   const used = getAllModuleIds(db);
@@ -58,15 +58,21 @@ function nextModuleIds(
 }
 
 export const generatePack: RequestHandler = async (req, res) => {
-  const { pack_serial, module1_cells, module2_cells, code_type, operator, overwrite } =
-    req.body as {
-      pack_serial: string;
-      module1_cells: string;
-      module2_cells: string;
-      code_type: CodeType;
-      operator?: string | null;
-      overwrite?: boolean;
-    };
+  const {
+    pack_serial,
+    module1_cells,
+    module2_cells,
+    code_type,
+    operator,
+    overwrite,
+  } = req.body as {
+    pack_serial: string;
+    module1_cells: string;
+    module2_cells: string;
+    code_type: CodeType;
+    operator?: string | null;
+    overwrite?: boolean;
+  };
 
   if (!pack_serial || typeof pack_serial !== "string") {
     return res.status(400).json({ error: "pack_serial is required" });
@@ -74,7 +80,9 @@ export const generatePack: RequestHandler = async (req, res) => {
   const m1 = normalizeLines(module1_cells || "");
   const m2 = normalizeLines(module2_cells || "");
   if (m1.length === 0 || m2.length === 0) {
-    return res.status(400).json({ error: "Both module cell lists are required" });
+    return res
+      .status(400)
+      .json({ error: "Both module cell lists are required" });
   }
 
   // Check duplicates inside each module
@@ -109,7 +117,12 @@ export const generatePack: RequestHandler = async (req, res) => {
   const { module1Id, module2Id } = nextModuleIds(db, pack_serial);
 
   try {
-    const files = await generateCodes(code_type || "barcode", module1Id, module2Id, pack_serial);
+    const files = await generateCodes(
+      code_type || "barcode",
+      module1Id,
+      module2Id,
+      pack_serial,
+    );
 
     const doc: PackDoc = {
       pack_serial,
@@ -139,26 +152,46 @@ export const generatePack: RequestHandler = async (req, res) => {
       },
     });
   } catch (err: any) {
-    return res.status(500).json({ error: "Failed to generate codes", detail: String(err?.message || err) });
+    return res
+      .status(500)
+      .json({
+        error: "Failed to generate codes",
+        detail: String(err?.message || err),
+      });
   }
 };
 
 export const generateMasterOnly: RequestHandler = async (req, res) => {
-  const { pack_serial, code_type } = req.body as { pack_serial: string; code_type: CodeType };
-  if (!pack_serial) return res.status(400).json({ error: "pack_serial is required" });
+  const { pack_serial, code_type } = req.body as {
+    pack_serial: string;
+    code_type: CodeType;
+  };
+  if (!pack_serial)
+    return res.status(400).json({ error: "pack_serial is required" });
   const db = readDB();
   const pack = db.packs[pack_serial];
   if (!pack) return res.status(404).json({ error: "Pack not found" });
   const [m1, m2] = Object.keys(pack.modules);
-  if (!m1 || !m2) return res.status(400).json({ error: "Pack missing modules" });
+  if (!m1 || !m2)
+    return res.status(400).json({ error: "Pack missing modules" });
   try {
-    const files = await generateCodes(code_type || "barcode", m1, m2, pack_serial);
+    const files = await generateCodes(
+      code_type || "barcode",
+      m1,
+      m2,
+      pack_serial,
+    );
     // update only master url
     pack.codes.master = files.masterUrl;
     writeDB(db);
     return res.json({ ok: true, master: files.masterUrl, pack });
   } catch (err: any) {
-    return res.status(500).json({ error: "Failed to generate master code", detail: String(err?.message || err) });
+    return res
+      .status(500)
+      .json({
+        error: "Failed to generate master code",
+        detail: String(err?.message || err),
+      });
   }
 };
 
@@ -185,7 +218,14 @@ export const search: RequestHandler = (req, res) => {
   // Search cell
   for (const [pid, pack] of Object.entries(db.packs)) {
     for (const [mid, cells] of Object.entries(pack.modules)) {
-      if (cells.includes(q)) return res.json({ type: "cell", cell: q, packId: pid, moduleId: mid, pack });
+      if (cells.includes(q))
+        return res.json({
+          type: "cell",
+          cell: q,
+          packId: pid,
+          moduleId: mid,
+          pack,
+        });
     }
   }
   res.json({ result: null });

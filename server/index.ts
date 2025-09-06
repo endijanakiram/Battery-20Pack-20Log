@@ -4,7 +4,13 @@ import cors from "cors";
 import path from "path";
 import { handleDemo } from "./routes/demo";
 import { ensureDataDirs, DATA_DIR } from "./utils/db";
-import { generatePack, generateMasterOnly, getDB, uploadDB, search } from "./routes/packs";
+import {
+  generatePack,
+  generateMasterOnly,
+  getDB,
+  uploadDB,
+  search,
+} from "./routes/packs";
 
 export function createServer() {
   const app = express();

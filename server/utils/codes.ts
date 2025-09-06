@@ -21,7 +21,10 @@ export interface GeneratedFiles {
   masterUrl: string;
 }
 
-async function generateBarcodePng(payload: string, humanText: string): Promise<Buffer> {
+async function generateBarcodePng(
+  payload: string,
+  humanText: string,
+): Promise<Buffer> {
   // Create a Code128 barcode PNG sized to fit inside the 236x236 canvas with margins
   // bwip-js will include text below
   const margin = 8;
@@ -42,7 +45,10 @@ async function generateBarcodePng(payload: string, humanText: string): Promise<B
   } as any);
 }
 
-async function generateQrPng(payload: string, humanText: string): Promise<Buffer> {
+async function generateQrPng(
+  payload: string,
+  humanText: string,
+): Promise<Buffer> {
   // Generate QR at high quality then expand to 236x236 with built-in margin.
   // qrcode will embed quiet zone; human text not embedded to keep compatibility.
   // We still set margin to produce adequate white space.
@@ -60,7 +66,7 @@ export async function generateCodes(
   codeType: CodeType,
   module1Id: string,
   module2Id: string,
-  packId: string
+  packId: string,
 ): Promise<GeneratedFiles> {
   const m1Payload = `M:${module1Id}`;
   const m2Payload = `M:${module2Id}`;
@@ -81,9 +87,16 @@ export async function generateCodes(
   } else {
     // QR with compact JSON payloads per spec
     const m1QR = JSON.stringify({ t: "m", m: module1Id });
-    const masterQR = JSON.stringify({ t: "p", p: packId, ms: [module1Id, module2Id] });
+    const masterQR = JSON.stringify({
+      t: "p",
+      p: packId,
+      ms: [module1Id, module2Id],
+    });
     m1Buf = await generateQrPng(m1QR, module1Id);
-    m2Buf = await generateQrPng(JSON.stringify({ t: "m", m: module2Id }), module2Id);
+    m2Buf = await generateQrPng(
+      JSON.stringify({ t: "m", m: module2Id }),
+      module2Id,
+    );
     masterBuf = await generateQrPng(masterQR, packId);
   }
 

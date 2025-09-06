@@ -56,7 +56,9 @@ export function getAllModuleIds(db: BatteryDB): Set<string> {
   return set;
 }
 
-export function getAllCells(db: BatteryDB): Map<string, { pack: string; module: string }> {
+export function getAllCells(
+  db: BatteryDB,
+): Map<string, { pack: string; module: string }> {
   const map = new Map<string, { pack: string; module: string }>();
   for (const [packId, pack] of Object.entries(db.packs)) {
     for (const [mid, cells] of Object.entries(pack.modules)) {

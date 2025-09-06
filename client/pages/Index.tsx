@@ -12,7 +12,9 @@ interface PackDoc {
   modules: Record<string, string[]>;
   codes: { module1: string; module2: string; master: string };
 }
-interface BatteryDB { packs: Record<string, PackDoc> }
+interface BatteryDB {
+  packs: Record<string, PackDoc>;
+}
 
 type CodeType = "barcode" | "qr";
 
@@ -32,7 +34,11 @@ export default function Index() {
   const [loading, setLoading] = useState(false);
   const [searchQ, setSearchQ] = useState("");
   const [searchRes, setSearchRes] = useState<any>(null);
-  const [lastFiles, setLastFiles] = useState<{ module1?: string; module2?: string; master?: string }>({});
+  const [lastFiles, setLastFiles] = useState<{
+    module1?: string;
+    module2?: string;
+    master?: string;
+  }>({});
 
   useEffect(() => {
     fetchDB();
@@ -108,7 +114,10 @@ export default function Index() {
           toast.error("Duplicate cells found:\n" + lines, { duration: 7000 });
           setLoading(false);
           return;
-        } else if (j.module1_duplicates?.length || j.module2_duplicates?.length) {
+        } else if (
+          j.module1_duplicates?.length ||
+          j.module2_duplicates?.length
+        ) {
           const msg = `Duplicate cells in module1: ${j.module1_duplicates.join(", ")}\nDuplicate cells in module2: ${j.module2_duplicates.join(", ")}`;
           toast.error(msg, { duration: 7000 });
           setLoading(false);
@@ -118,7 +127,9 @@ export default function Index() {
       const data = (await res.json()) as GenerateResponse;
       if (!data.ok) throw new Error("Failed");
       setLastFiles(data.files);
-      setDb((prev) => ({ packs: { ...prev.packs, [data.pack.pack_serial]: data.pack } }));
+      setDb((prev) => ({
+        packs: { ...prev.packs, [data.pack.pack_serial]: data.pack },
+      }));
       toast.success("Generated 3 code PNGs");
     } catch (e: any) {
       toast.error(e?.message || "Error generating pack");
@@ -134,7 +145,10 @@ export default function Index() {
       const res = await fetch("/api/packs/master-only", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pack_serial: packSerial.trim(), code_type: codeType }),
+        body: JSON.stringify({
+          pack_serial: packSerial.trim(),
+          code_type: codeType,
+        }),
       });
       const j = await res.json();
       if (!j.ok) throw new Error(j.error || "Failed");
@@ -148,7 +162,11 @@ export default function Index() {
   }
 
   async function handleExportZip() {
-    const urls = [lastFiles.module1, lastFiles.module2, lastFiles.master].filter(Boolean) as string[];
+    const urls = [
+      lastFiles.module1,
+      lastFiles.module2,
+      lastFiles.master,
+    ].filter(Boolean) as string[];
     if (!urls.length) return toast.error("Nothing to export yet");
     const zip = new JSZip();
     for (const url of urls) {
@@ -193,19 +211,49 @@ export default function Index() {
       <header className="sticky top-0 z-20 border-b bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/50">
         <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-extrabold tracking-tight text-emerald-700">{brand.title}</h1>
+            <h1 className="text-xl font-extrabold tracking-tight text-emerald-700">
+              {brand.title}
+            </h1>
             <p className="text-xs text-slate-500">{brand.subtitle}</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={fetchDB}>Load DB</Button>
-            <Button variant="outline" onClick={() => {
-              fetch("/api/db", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(db) })
-                .then(() => toast.success("Saved DB"))
-                .catch(() => toast.error("Save failed"));
-            }}>Save DB</Button>
-            <Button variant="ghost" onClick={() => toast("Use Google Drive by configuring server credentials.")}>Sign in to Google Drive</Button>
-            <Button variant="outline" onClick={() => toast("Upload to Drive not configured")}>Upload DB to Drive</Button>
-            <Button variant="outline" onClick={() => toast("Download from Drive not configured")}>Download DB from Drive</Button>
+            <Button variant="outline" onClick={fetchDB}>
+              Load DB
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                fetch("/api/db", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(db),
+                })
+                  .then(() => toast.success("Saved DB"))
+                  .catch(() => toast.error("Save failed"));
+              }}
+            >
+              Save DB
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                toast("Use Google Drive by configuring server credentials.")
+              }
+            >
+              Sign in to Google Drive
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => toast("Upload to Drive not configured")}
+            >
+              Upload DB to Drive
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => toast("Download from Drive not configured")}
+            >
+              Download DB from Drive
+            </Button>
           </div>
         </div>
       </header>
@@ -224,7 +272,12 @@ export default function Index() {
           </div>
           <div className="md:col-span-3">
             <label className="text-sm font-medium">Operator</label>
-            <Input value={operator} onChange={(e) => setOperator(e.target.value)} placeholder="initials or name" className="mt-1" />
+            <Input
+              value={operator}
+              onChange={(e) => setOperator(e.target.value)}
+              placeholder="initials or name"
+              className="mt-1"
+            />
           </div>
           <div className="md:col-span-4">
             <label className="text-sm font-medium">Code Type</label>
@@ -232,7 +285,9 @@ export default function Index() {
               <button
                 className={
                   "flex-1 rounded px-3 py-2 text-sm " +
-                  (codeType === "barcode" ? "bg-emerald-600 text-white" : "hover:bg-slate-50")
+                  (codeType === "barcode"
+                    ? "bg-emerald-600 text-white"
+                    : "hover:bg-slate-50")
                 }
                 onClick={() => setCodeType("barcode")}
               >
@@ -241,7 +296,9 @@ export default function Index() {
               <button
                 className={
                   "flex-1 rounded px-3 py-2 text-sm " +
-                  (codeType === "qr" ? "bg-emerald-600 text-white" : "hover:bg-slate-50")
+                  (codeType === "qr"
+                    ? "bg-emerald-600 text-white"
+                    : "hover:bg-slate-50")
                 }
                 onClick={() => setCodeType("qr")}
               >
@@ -256,7 +313,9 @@ export default function Index() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <h3 className="font-semibold">Module 1 cells</h3>
-              <span className="text-xs text-slate-500">{normLines(m1).length} lines</span>
+              <span className="text-xs text-slate-500">
+                {normLines(m1).length} lines
+              </span>
             </div>
             <Textarea
               rows={12}
@@ -268,7 +327,9 @@ export default function Index() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <h3 className="font-semibold">Module 2 cells</h3>
-              <span className="text-xs text-slate-500">{normLines(m2).length} lines</span>
+              <span className="text-xs text-slate-500">
+                {normLines(m2).length} lines
+              </span>
             </div>
             <Textarea
               rows={12}
@@ -284,12 +345,22 @@ export default function Index() {
           <Button onClick={handleGenerate} disabled={loading}>
             Generate Modules + Master
           </Button>
-          <Button variant="secondary" onClick={handleMasterOnly} disabled={loading}>
+          <Button
+            variant="secondary"
+            onClick={handleMasterOnly}
+            disabled={loading}
+          >
             Generate Master Only
           </Button>
-          <Button variant="outline" onClick={clearAll}>Clear</Button>
-          <Button variant="outline" onClick={handleExportZip}>Export ZIP</Button>
-          <Button variant="outline" onClick={() => window.print()}>Print</Button>
+          <Button variant="outline" onClick={clearAll}>
+            Clear
+          </Button>
+          <Button variant="outline" onClick={handleExportZip}>
+            Export ZIP
+          </Button>
+          <Button variant="outline" onClick={() => window.print()}>
+            Print
+          </Button>
           <div className="ml-auto text-sm text-slate-500 flex items-center gap-3">
             <span>Total packs: {packsCount}</span>
           </div>
@@ -300,7 +371,11 @@ export default function Index() {
           <section className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-6">
             {lastFiles.module1 && (
               <figure className="border rounded p-3 bg-white shadow-sm">
-                <img src={lastFiles.module1} alt="module1 code" className="mx-auto" />
+                <img
+                  src={lastFiles.module1}
+                  alt="module1 code"
+                  className="mx-auto"
+                />
                 <figcaption className="mt-2 text-center text-xs break-all">
                   {lastFiles.module1.split("/").pop()}
                 </figcaption>
@@ -308,7 +383,11 @@ export default function Index() {
             )}
             {lastFiles.module2 && (
               <figure className="border rounded p-3 bg-white shadow-sm">
-                <img src={lastFiles.module2} alt="module2 code" className="mx-auto" />
+                <img
+                  src={lastFiles.module2}
+                  alt="module2 code"
+                  className="mx-auto"
+                />
                 <figcaption className="mt-2 text-center text-xs break-all">
                   {lastFiles.module2.split("/").pop()}
                 </figcaption>
@@ -316,7 +395,11 @@ export default function Index() {
             )}
             {lastFiles.master && (
               <figure className="border rounded p-3 bg-white shadow-sm">
-                <img src={lastFiles.master} alt="master code" className="mx-auto" />
+                <img
+                  src={lastFiles.master}
+                  alt="master code"
+                  className="mx-auto"
+                />
                 <figcaption className="mt-2 text-center text-xs break-all">
                   {lastFiles.master.split("/").pop()}
                 </figcaption>
@@ -334,42 +417,65 @@ export default function Index() {
               onChange={(e) => setSearchQ(e.target.value)}
               placeholder="Paste a pack serial or a cell serial"
             />
-            <Button variant="outline" onClick={handleSearch}>Search</Button>
+            <Button variant="outline" onClick={handleSearch}>
+              Search
+            </Button>
           </div>
           {searchRes && searchRes.type === "pack" && (
             <div className="mt-4 rounded border bg-white p-4 text-sm">
-              <div className="font-medium">Pack: {searchRes.pack.pack_serial}</div>
-              <div className="text-slate-500">Created: {new Date(searchRes.pack.created_at).toLocaleString()} by {searchRes.pack.created_by || "—"}</div>
+              <div className="font-medium">
+                Pack: {searchRes.pack.pack_serial}
+              </div>
+              <div className="text-slate-500">
+                Created: {new Date(searchRes.pack.created_at).toLocaleString()}{" "}
+                by {searchRes.pack.created_by || "—"}
+              </div>
               <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(searchRes.pack.modules).map(([mid, cells]: any) => (
-                  <div key={mid}>
-                    <div className="font-semibold">{mid}</div>
-                    <ul className="mt-1 text-xs grid grid-cols-2 gap-x-4">
-                      {cells.map((c: string) => (
-                        <li key={c} className="truncate">{c}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+                {Object.entries(searchRes.pack.modules).map(
+                  ([mid, cells]: any) => (
+                    <div key={mid}>
+                      <div className="font-semibold">{mid}</div>
+                      <ul className="mt-1 text-xs grid grid-cols-2 gap-x-4">
+                        {cells.map((c: string) => (
+                          <li key={c} className="truncate">
+                            {c}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ),
+                )}
               </div>
             </div>
           )}
           {searchRes && searchRes.type === "cell" && (
             <div className="mt-4 rounded border bg-white p-4 text-sm">
               <div>
-                Cell <b>{searchRes.cell}</b> found in module <b>{searchRes.moduleId}</b>, pack <b>{searchRes.packId}</b>
+                Cell <b>{searchRes.cell}</b> found in module{" "}
+                <b>{searchRes.moduleId}</b>, pack <b>{searchRes.packId}</b>
               </div>
               <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(searchRes.pack.modules).map(([mid, cells]: any) => (
-                  <div key={mid}>
-                    <div className="font-semibold">{mid}</div>
-                    <ul className="mt-1 text-xs grid grid-cols-2 gap-x-4">
-                      {cells.map((c: string) => (
-                        <li key={c} className={c === searchRes.cell ? "text-emerald-700 font-medium" : "truncate"}>{c}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+                {Object.entries(searchRes.pack.modules).map(
+                  ([mid, cells]: any) => (
+                    <div key={mid}>
+                      <div className="font-semibold">{mid}</div>
+                      <ul className="mt-1 text-xs grid grid-cols-2 gap-x-4">
+                        {cells.map((c: string) => (
+                          <li
+                            key={c}
+                            className={
+                              c === searchRes.cell
+                                ? "text-emerald-700 font-medium"
+                                : "truncate"
+                            }
+                          >
+                            {c}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ),
+                )}
               </div>
             </div>
           )}
@@ -378,8 +484,10 @@ export default function Index() {
         {/* Help */}
         <section className="mt-10 text-xs text-slate-500">
           <p>
-            Label printing spec: 20×20 mm at 300 dpi = 236×236 px. For QR, payloads use compact JSON for reliability. Barcode uses short text payloads like
-            M:&lt;module_id&gt; and P:&lt;pack&gt;|MS:&lt;m1&gt;,&lt;m2&gt;.
+            Label printing spec: 20×20 mm at 300 dpi = 236×236 px. For QR,
+            payloads use compact JSON for reliability. Barcode uses short text
+            payloads like M:&lt;module_id&gt; and
+            P:&lt;pack&gt;|MS:&lt;m1&gt;,&lt;m2&gt;.
           </p>
         </section>
       </main>
