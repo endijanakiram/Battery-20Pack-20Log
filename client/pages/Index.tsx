@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import JSZip from "jszip";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface PackDoc {
   pack_serial: string;
@@ -25,6 +26,7 @@ type GenerateResponse = {
 };
 
 export default function Index() {
+  const nav = useNavigate();
   const [packSerial, setPackSerial] = useState("");
   const [operator, setOperator] = useState("");
   const [codeType, setCodeType] = useState<CodeType>("barcode");
@@ -289,6 +291,12 @@ export default function Index() {
               onClick={() => toast("Download from Drive not configured")}
             >
               Download DB from Drive
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => { localStorage.removeItem("auth_role"); nav("/"); }}
+            >
+              Logout
             </Button>
           </div>
         </div>
