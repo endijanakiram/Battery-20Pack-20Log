@@ -34,22 +34,34 @@ export default function Index() {
   const [codeType, setCodeType] = useState<CodeType>("barcode");
   const [m1, setM1] = useState("");
   const [m2, setM2] = useState("");
+  const [m3, setM3] = useState("");
   const [db, setDb] = useState<BatteryDB>({ packs: {} });
   const [loading, setLoading] = useState(false);
   const [searchQ, setSearchQ] = useState("");
   const [searchRes, setSearchRes] = useState<any>(null);
   const [lastFiles, setLastFiles] = useState<{
-    module1?: string;
-    module2?: string;
+    modules?: Record<string,string>;
     master?: string;
   }>({});
   const [nextSerial, setNextSerial] = useState<string>("");
   const [errorInfo, setErrorInfo] = useState<string>("");
+  const [modulesEnabled, setModulesEnabled] = useState<ModulesEnabled>({ m1: true, m2: true, m3: false });
 
   useEffect(() => {
     fetchDB();
     fetchNext();
+    fetchConfig();
   }, []);
+
+  async function fetchConfig() {
+    try {
+      const r = await fetch("/api/config");
+      if (r.ok) {
+        const j = (await r.json()) as Config;
+        setModulesEnabled(j.modulesEnabled);
+      }
+    } catch {}
+  }
 
   async function fetchDB() {
     try {
@@ -81,8 +93,10 @@ export default function Index() {
   }
 
   async function handleGenerate() {
-    if (!m1.trim() || !m2.trim()) {
-      toast.error("Paste both module cell lists");
+    const need2 = modulesEnabled.m1 && modulesEnabled.m2 && !modulesEnabled.m3;
+    const need3 = modulesEnabled.m1 && modulesEnabled.m2 && modulesEnabled.m3;
+    if (!m1.trim() || (need2 && !m2.trim()) || (need3 && (!m2.trim() || !m3.trim()))) {
+      toast.error("Paste required module cell lists per config");
       return;
     }
     setErrorInfo("");
@@ -94,7 +108,8 @@ export default function Index() {
         body: JSON.stringify({
           pack_serial: packSerial.trim(),
           module1_cells: m1,
-          module2_cells: m2,
+          module2_cells: modulesEnabled.m2 ? m2 : undefined,
+          module3_cells: modulesEnabled.m3 ? m3 : undefined,
           code_type: codeType,
           operator: operator || null,
         }),
@@ -115,7 +130,8 @@ export default function Index() {
             body: JSON.stringify({
               pack_serial: packSerial.trim(),
               module1_cells: m1,
-              module2_cells: m2,
+              module2_cells: modulesEnabled.m2 ? m2 : undefined,
+              module3_cells: modulesEnabled.m3 ? m3 : undefined,
               code_type: codeType,
               operator: operator || null,
               overwrite: true,
@@ -142,7 +158,7 @@ export default function Index() {
       }
       const data = (await res.json()) as GenerateResponse;
       if (!data.ok) throw new Error("Failed");
-      setLastFiles(data.files);
+      setLastFiles({ modules: data.files.modules, master: data.files.master });
       setPackSerial(data.pack.pack_serial);
       setDb((prev) => ({
         packs: { ...prev.packs, [data.pack.pack_serial]: data.pack },
@@ -167,7 +183,7 @@ export default function Index() {
       });
       const j = await res.json();
       if (!j.ok) throw new Error(j.error || "Failed");
-      setLastFiles(j.files);
+      setLastFiles({ modules: j.files.modules, master: j.files.master });
       setDb((prev) => ({ packs: { ...prev.packs, [j.pack.pack_serial]: j.pack } }));
       toast.success(`Regenerated as ${type.toUpperCase()}`);
     } catch (e: any) {
@@ -201,8 +217,10 @@ export default function Index() {
   }
 
   async function handleSaveOnly() {
-    if (!m1.trim() || !m2.trim()) {
-      toast.error("Paste both module cell lists");
+    const need2 = modulesEnabled.m1 && modulesEnabled.m2 && !modulesEnabled.m3;
+    const need3 = modulesEnabled.m1 && modulesEnabled.m2 && modulesEnabled.m3;
+    if (!m1.trim() || (need2 && !m2.trim()) || (need3 && (!m2.trim() || !m3.trim()))) {
+      toast.error("Paste required module cell lists per config");
       return;
     }
     setLoading(true);
@@ -213,7 +231,8 @@ export default function Index() {
         body: JSON.stringify({
           pack_serial: packSerial.trim(),
           module1_cells: m1,
-          module2_cells: m2,
+          module2_cells: modulesEnabled.m2 ? m2 : undefined,
+          module3_cells: modulesEnabled.m3 ? m3 : undefined,
           operator: operator || null,
         }),
       });
@@ -228,11 +247,30 @@ export default function Index() {
             body: JSON.stringify({
               pack_serial: packSerial.trim(),
               module1_cells: m1,
-              module2_cells: m2,
+              module2_cells: modulesEnabled.m2 ? m2 : undefined,
+              module3_cells: modulesEnabled.m3 ? m3 : undefined,
               operator: operator || null,
               overwrite: true,
             }),
           });
+        } else if (j.conflicts?.length) {
+          const lines = j.conflicts
+            .map((c: any) => `${c.cell} in ${c.pack} / ${c.module}`)
+            .join("\n");
+          setErrorInfo(`Duplicate cells found:\n${lines}`);
+          toast.error("Duplicate cells found. See details below.", { duration: 5000 });
+          setLoading(false);
+          return;
+        } else if (
+          j.module1_duplicates?.length ||
+          j.module2_duplicates?.length ||
+          j.module3_duplicates?.length
+        ) {
+          const msg = `Duplicate cells in module1: ${j.module1_duplicates.join(", ")}\nDuplicate cells in module2: ${j.module2_duplicates.join(", ")}\nDuplicate cells in module3: ${j.module3_duplicates.join(", ")}`;
+          setErrorInfo(msg);
+          toast.error("Duplicate cells within module. See details below.", { duration: 5000 });
+          setLoading(false);
+          return;
         }
       }
       const data = await res.json();
@@ -261,6 +299,7 @@ export default function Index() {
     setOperator("");
     setM1("");
     setM2("");
+    setM3("");
     setLastFiles({});
   }
 
@@ -402,8 +441,8 @@ export default function Index() {
           </div>
         </section>
 
-        {/* Two-column body */}
-        <section className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Module inputs - dynamic based on config */}
+        <section className={`mt-6 grid grid-cols-1 ${modulesEnabled.m3 ? "md:grid-cols-3" : modulesEnabled.m2 ? "md:grid-cols-2" : "md:grid-cols-1"} gap-6`}>
           <div>
             <div className="flex items-center justify-between mb-1">
               <h3 className="font-semibold">Module 1 cells</h3>
@@ -418,20 +457,38 @@ export default function Index() {
               placeholder="Paste each cell serial on a new line"
             />
           </div>
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="font-semibold">Module 2 cells</h3>
-              <span className="text-xs text-slate-500">
-                {normLines(m2).length} lines
-              </span>
+          {modulesEnabled.m2 && (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="font-semibold">Module 2 cells</h3>
+                <span className="text-xs text-slate-500">
+                  {normLines(m2).length} lines
+                </span>
+              </div>
+              <Textarea
+                rows={12}
+                value={m2}
+                onChange={(e) => setM2(e.target.value)}
+                placeholder="Paste each cell serial on a new line"
+              />
             </div>
-            <Textarea
-              rows={12}
-              value={m2}
-              onChange={(e) => setM2(e.target.value)}
-              placeholder="Paste each cell serial on a new line"
-            />
-          </div>
+          )}
+          {modulesEnabled.m3 && (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="font-semibold">Module 3 cells</h3>
+                <span className="text-xs text-slate-500">
+                  {normLines(m3).length} lines
+                </span>
+              </div>
+              <Textarea
+                rows={12}
+                value={m3}
+                onChange={(e) => setM3(e.target.value)}
+                placeholder="Paste each cell serial on a new line"
+              />
+            </div>
+          )}
         </section>
 
         {errorInfo && (
@@ -464,7 +521,7 @@ export default function Index() {
         </section>
 
         {/* Latest files preview */}
-        {(lastFiles.module1 || lastFiles.module2 || lastFiles.master) && (
+        {(lastFiles.modules && Object.keys(lastFiles.modules).length > 0) || lastFiles.master ? (
           <>
             <div className="mt-6 flex gap-2">
               <Button size="sm" variant="outline" onClick={() => handleRegenerate("barcode")}>
@@ -475,40 +532,23 @@ export default function Index() {
               </Button>
             </div>
             <section className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-6">
-            {lastFiles.module1 && (
-              <figure className="border rounded p-3 bg-white shadow-sm">
-                <img src={lastFiles.module1} alt="module1 code" className="mx-auto h-auto max-w-full object-contain" />
+            {lastFiles.modules && Object.entries(lastFiles.modules).map(([id, url]) => (
+              <figure key={id} className="border rounded p-3 bg-white shadow-sm">
+                <img src={url} alt={id} className="mx-auto h-auto max-w-full object-contain" />
                 <figcaption className="mt-2 text-center text-xs break-all">
-                  {lastFiles.module1.split("/").pop()}
+                  {url.split("/").pop()}
                 </figcaption>
-                {/_QR_/.test(lastFiles.module1) && (
+                {/_QR_/.test(url) && (
                   <div className="text-center text-xs mt-1">
-                    {lastFiles.module1.split("/").pop()!.split("_")[0]}
+                    {(url.split("/").pop() || '').split("_")[0]}
                   </div>
                 )}
                 <div className="mt-2 flex justify-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => printImage(lastFiles.module1!)}>Print</Button>
-                  <Button variant="outline" size="sm" onClick={() => downloadImage(lastFiles.module1!)}>Download</Button>
+                  <Button variant="outline" size="sm" onClick={() => printImage(url)}>Print</Button>
+                  <Button variant="outline" size="sm" onClick={() => downloadImage(url)}>Download</Button>
                 </div>
               </figure>
-            )}
-            {lastFiles.module2 && (
-              <figure className="border rounded p-3 bg-white shadow-sm">
-                <img src={lastFiles.module2} alt="module2 code" className="mx-auto h-auto max-w-full object-contain" />
-                <figcaption className="mt-2 text-center text-xs break-all">
-                  {lastFiles.module2.split("/").pop()}
-                </figcaption>
-                {/_QR_/.test(lastFiles.module2) && (
-                  <div className="text-center text-xs mt-1">
-                    {lastFiles.module2.split("/").pop()!.split("_")[0]}
-                  </div>
-                )}
-                <div className="mt-2 flex justify-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => printImage(lastFiles.module2!)}>Print</Button>
-                  <Button variant="outline" size="sm" onClick={() => downloadImage(lastFiles.module2!)}>Download</Button>
-                </div>
-              </figure>
-            )}
+            ))}
             {lastFiles.master && (
               <figure className="border rounded p-3 bg-white shadow-sm">
                 <img src={lastFiles.master} alt="master code" className="mx-auto h-auto max-w-full object-contain" />
@@ -528,7 +568,7 @@ export default function Index() {
             )}
             </section>
           </>
-        )}
+        ) : null}
 
         {/* Search */}
         <section className="mt-10 border-t pt-6">
