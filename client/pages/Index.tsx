@@ -273,7 +273,7 @@ export default function Index() {
             <Input
               value={packSerial}
               onChange={(e) => setPackSerial(e.target.value)}
-              placeholder="e.g. MLFP302300001"
+              placeholder="Leave blank for auto (e.g., RIV2509LFP90010001)"
               className="mt-1"
             />
           </div>
