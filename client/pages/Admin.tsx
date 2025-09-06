@@ -253,8 +253,23 @@ export default function Admin() {
                   </Button>
                 </div>
               </div>
+              <div className="flex gap-2 mt-4">
+                <Button size="sm" variant="outline" onClick={async () => {
+                  if (!current) return;
+                  const r = await fetch('/api/packs/regenerate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pack_serial: current.pack_serial, code_type: 'barcode' }) });
+                  const j = await r.json();
+                  if (j.ok) { setPacks((ps) => ps.map(p => p.pack_serial === current.pack_serial ? j.pack : p)); }
+                }}>Regenerate as Barcode</Button>
+                <Button size="sm" variant="outline" onClick={async () => {
+                  if (!current) return;
+                  const r = await fetch('/api/packs/regenerate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pack_serial: current.pack_serial, code_type: 'qr' }) });
+                  const j = await r.json();
+                  if (j.ok) { setPacks((ps) => ps.map(p => p.pack_serial === current.pack_serial ? j.pack : p)); }
+                }}>Regenerate as QR</Button>
+              </div>
+
               {/* Codes preview */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
                 <figure className="border rounded p-3 bg-white shadow-sm">
                   <img src={current.codes.module1} alt="module1" className="mx-auto h-auto max-w-full object-contain" />
                   <figcaption className="mt-2 text-center text-xs break-all">{current.codes.module1.split('/').pop()}</figcaption>
