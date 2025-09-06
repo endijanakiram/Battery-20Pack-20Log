@@ -70,9 +70,6 @@ export default function Login() {
         <Button className="mt-5 w-full" onClick={handleLogin}>
           Sign in
         </Button>
-        <p className="mt-3 text-xs text-slate-500">
-          Operator: user / 123456 · Admin: nxrivot@gmail.com / NX100@123
-        </p>
       </div>
     </div>
   );
