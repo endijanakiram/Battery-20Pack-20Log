@@ -5,7 +5,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
-class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean; error?: any }>{
+class ErrorBoundary extends Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error?: any }
+> {
   constructor(props: any) {
     super(props);
     this.state = { hasError: false };
@@ -20,8 +23,12 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError:
     if (this.state.hasError) {
       return (
         <div className="p-6 text-center">
-          <h2 className="text-lg font-semibold text-red-700">Something went wrong loading the dashboard.</h2>
-          <p className="text-sm text-slate-600 mt-1">Please refresh. If it persists, check server logs.</p>
+          <h2 className="text-lg font-semibold text-red-700">
+            Something went wrong loading the dashboard.
+          </h2>
+          <p className="text-sm text-slate-600 mt-1">
+            Please refresh. If it persists, check server logs.
+          </p>
         </div>
       );
     }
@@ -460,7 +467,7 @@ function DashboardInner() {
                 localStorage.removeItem("auth_role");
                 nav("/");
               }}
-           >
+            >
               Logout
             </Button>
           </div>
@@ -729,7 +736,7 @@ function DashboardInner() {
                 Pack: {searchRes.pack.pack_serial}
               </div>
               <div className="text-slate-500">
-                Created: {new Date(searchRes.pack.created_at).toLocaleString()} {" "}
+                Created: {new Date(searchRes.pack.created_at).toLocaleString()}{" "}
                 by {searchRes.pack.created_by || "—"}
               </div>
               <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -753,17 +760,19 @@ function DashboardInner() {
           {searchRes && searchRes.type === "cell" && (
             <div className="mt-4 rounded border bg-white p-4 text-sm">
               <div>
-                Cell <b>{searchRes.cell}</b> found in module {" "}
+                Cell <b>{searchRes.cell}</b> found in module{" "}
                 <b>{searchRes.moduleId}</b>, pack <b>{searchRes.packId}</b>
               </div>
               <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                 {Object.entries(searchRes.pack.modules).map(
                   ([mid, cells]: any) => (
                     <div key={mid}>
-                      <div className={
-                        "font-semibold " +
-                        (mid === searchRes.moduleId ? "text-emerald-700" : "")
-                      }>
+                      <div
+                        className={
+                          "font-semibold " +
+                          (mid === searchRes.moduleId ? "text-emerald-700" : "")
+                        }
+                      >
                         {mid}
                       </div>
                       <ul className="mt-1 text-xs grid grid-cols-2 gap-x-4">
@@ -789,7 +798,7 @@ function DashboardInner() {
           {searchRes && searchRes.type === "module" && (
             <div className="mt-4 rounded border bg-white p-4 text-sm">
               <div>
-                Module <b>{searchRes.moduleId}</b> found in pack {" "}
+                Module <b>{searchRes.moduleId}</b> found in pack{" "}
                 <b>{searchRes.packId}</b>
               </div>
               <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
