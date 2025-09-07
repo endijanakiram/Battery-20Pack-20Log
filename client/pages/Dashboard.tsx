@@ -435,7 +435,7 @@ export default function Dashboard() {
                 localStorage.removeItem("auth_role");
                 nav("/");
               }}
-           >
+            >
               Logout
             </Button>
           </div>
@@ -704,7 +704,7 @@ export default function Dashboard() {
                 Pack: {searchRes.pack.pack_serial}
               </div>
               <div className="text-slate-500">
-                Created: {new Date(searchRes.pack.created_at).toLocaleString()} {" "}
+                Created: {new Date(searchRes.pack.created_at).toLocaleString()}{" "}
                 by {searchRes.pack.created_by || "—"}
               </div>
               <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -728,17 +728,19 @@ export default function Dashboard() {
           {searchRes && searchRes.type === "cell" && (
             <div className="mt-4 rounded border bg-white p-4 text-sm">
               <div>
-                Cell <b>{searchRes.cell}</b> found in module {" "}
+                Cell <b>{searchRes.cell}</b> found in module{" "}
                 <b>{searchRes.moduleId}</b>, pack <b>{searchRes.packId}</b>
               </div>
               <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                 {Object.entries(searchRes.pack.modules).map(
                   ([mid, cells]: any) => (
                     <div key={mid}>
-                      <div className={
-                        "font-semibold " +
-                        (mid === searchRes.moduleId ? "text-emerald-700" : "")
-                      }>
+                      <div
+                        className={
+                          "font-semibold " +
+                          (mid === searchRes.moduleId ? "text-emerald-700" : "")
+                        }
+                      >
                         {mid}
                       </div>
                       <ul className="mt-1 text-xs grid grid-cols-2 gap-x-4">
@@ -764,7 +766,7 @@ export default function Dashboard() {
           {searchRes && searchRes.type === "module" && (
             <div className="mt-4 rounded border bg-white p-4 text-sm">
               <div>
-                Module <b>{searchRes.moduleId}</b> found in pack {" "}
+                Module <b>{searchRes.moduleId}</b> found in pack{" "}
                 <b>{searchRes.packId}</b>
               </div>
               <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
