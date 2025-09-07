@@ -35,6 +35,10 @@ export function createServer() {
 
   app.post("/api/packs/master-only", generateMasterOnly);
 
+  app.post("/api/packs/save-only", (req, res, next) =>
+    import("./routes/packs").then((m) => m.savePackOnly(req, res, next)),
+  );
+
   app.post("/api/packs/regenerate", (req, res, next) =>
     import("./routes/packs").then((m) => m.regenerateCodes(req, res, next)),
   );
