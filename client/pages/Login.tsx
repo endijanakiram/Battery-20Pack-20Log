@@ -31,7 +31,9 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-slate-50 p-4">
       <div className="w-full max-w-md rounded-lg border bg-white p-6 shadow">
-        <h1 className="text-xl font-bold text-emerald-700">Battery Pack Data Log</h1>
+        <h1 className="text-xl font-bold text-emerald-700">
+          Battery Pack Data Log
+        </h1>
         <p className="text-xs text-slate-500">Sign in to continue</p>
         <form className="mt-4" autoComplete="off" onSubmit={handleLogin}>
           <div className="flex rounded-md border p-1">
@@ -52,7 +54,9 @@ export default function Login() {
           </div>
 
           <div className="mt-4">
-            <label className="text-sm font-medium">{mode === "admin" ? "Email" : "User ID"}</label>
+            <label className="text-sm font-medium">
+              {mode === "admin" ? "Email" : "User ID"}
+            </label>
             <Input
               className="mt-1"
               value={user}
@@ -80,7 +84,9 @@ export default function Login() {
               enterKeyHint="go"
             />
           </div>
-          <Button type="submit" className="mt-5 w-full">Sign in</Button>
+          <Button type="submit" className="mt-5 w-full">
+            Sign in
+          </Button>
         </form>
       </div>
     </div>
