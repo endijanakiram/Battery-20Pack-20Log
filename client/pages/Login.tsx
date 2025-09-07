@@ -11,15 +11,19 @@ export default function Login() {
 
   function handleLogin(e?: React.FormEvent) {
     if (e) e.preventDefault();
+    const opOk = (user === "user" && pass === "123456") ||
+                 (user === "user" && pass === "NXr!v0t#2025");
+    const adOk = (user === "nxrivot@gmail.com" && pass === "NX100@123") ||
+                 (user === "nxrivot@gmail.com" && pass === "Adm!n#2025");
     if (mode === "operator") {
-      if (user === "user" && pass === "123456") {
+      if (opOk) {
         localStorage.setItem("auth_role", "operator");
         nav("/dashboard");
         return;
       }
       alert("Invalid operator credentials");
     } else {
-      if (user === "nxrivot@gmail.com" && pass === "NX100@123") {
+      if (adOk) {
         localStorage.setItem("auth_role", "admin");
         nav("/admin");
         return;
