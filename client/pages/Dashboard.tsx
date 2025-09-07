@@ -59,7 +59,7 @@ type GenerateResponse = {
   files: { modules: Record<string, string>; master: string };
 };
 
-export default function Dashboard() {
+function DashboardInner() {
   const nav = useNavigate();
   const [packSerial, setPackSerial] = useState("");
   const [operator, setOperator] = useState("");
