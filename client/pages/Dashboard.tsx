@@ -95,7 +95,8 @@ export default function Dashboard() {
       const r = await fetch("/api/config");
       if (r.ok) {
         const j = (await r.json()) as Config;
-        setModulesEnabled(j.modulesEnabled);
+        const fallback = { m1: true, m2: true, m3: false };
+        setModulesEnabled(j?.modulesEnabled ?? fallback);
       }
     } catch {}
   }
