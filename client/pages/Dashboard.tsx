@@ -1,9 +1,33 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { Component, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+
+class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean; error?: any }>{
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: any, info: any) {
+    console.error("Dashboard crashed", error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-6 text-center">
+          <h2 className="text-lg font-semibold text-red-700">Something went wrong loading the dashboard.</h2>
+          <p className="text-sm text-slate-600 mt-1">Please refresh. If it persists, check server logs.</p>
+        </div>
+      );
+    }
+    return this.props.children as any;
+  }
+}
 
 interface PackDoc {
   pack_serial: string;
