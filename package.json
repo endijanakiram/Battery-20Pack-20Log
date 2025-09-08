@@ -21,6 +21,9 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@sentry/node": "^8.30.0",
+    "@sentry/react": "^8.30.0",
+    "@supabase/supabase-js": "^2.45.4",
     "bwip-js": "^4.7.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
