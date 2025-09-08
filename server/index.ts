@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import path from "path";
+import * as Sentry from "@sentry/node";
 import { ensureDataDirs, DATA_DIR } from "./utils/db";
 import {
   generatePack,
@@ -13,6 +14,12 @@ import {
 export function createServer() {
   const app = express();
 
+  // Sentry init (no-op if DSN missing)
+  if (process.env.SENTRY_DSN) {
+    Sentry.init({ dsn: process.env.SENTRY_DSN, tracesSampleRate: 0.2 });
+    app.use(Sentry.Handlers.requestHandler());
+  }
+
   // Prepare data directories
   ensureDataDirs();
 
@@ -21,8 +28,9 @@ export function createServer() {
   app.use(express.json({ limit: "5mb" }));
   app.use(express.urlencoded({ extended: true }));
 
-  // Static files for generated codes
+  // Static files for generated codes (dev) and API served path for prod
   app.use("/files", express.static(path.join(DATA_DIR)));
+  app.use("/api/files", express.static(path.join(DATA_DIR)));
 
   // Health/demo
   app.get("/api/ping", (_req, res) => {
@@ -67,6 +75,11 @@ export function createServer() {
   app.get("/api/next-pack-serial", (req, res, next) =>
     import("./routes/packs").then((m) => m.nextSerialPreview(req, res, next)),
   );
+
+  // Sentry error handler after routes
+  if (process.env.SENTRY_DSN) {
+    app.use(Sentry.Handlers.errorHandler());
+  }
 
   return app;
 }
