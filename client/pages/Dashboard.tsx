@@ -775,20 +775,20 @@ function DashboardInner() {
                       >
                         {mid}
                       </div>
-                      // <ul className="mt-1 text-xs grid grid-cols-2 gap-x-4">
-                      //   {cells.map((c: string) => (
-                      //     <li
-                      //       key={c}
-                      //       className={
-                      //         c === searchRes.cell
-                      //           ? "text-emerald-700 font-medium"
-                      //           : "truncate"
-                      //       }
-                      //     >
-                      //       {c}
-                      //     </li>
-                      //   ))}
-                      // </ul>
+                      <ul className="mt-1 text-xs grid grid-cols-2 gap-x-4">
+                        {cells.map((c: string) => (
+                          <li
+                            key={c}
+                            className={
+                              c === searchRes.cell
+                                ? "text-emerald-700 font-medium"
+                                : "truncate"
+                            }
+                          >
+                            {c}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   ),
                 )}
@@ -813,13 +813,13 @@ function DashboardInner() {
                       >
                         {mid}
                       </div>
-                      // <ul className="mt-1 text-xs grid grid-cols-2 gap-x-4">
-                      //   {cells.map((c: string) => (
-                      //     <li key={c} className="truncate">
-                      //       {c}
-                      //     </li>
-                      //   ))}
-                      // </ul>
+                      <ul className="mt-1 text-xs grid grid-cols-2 gap-x-4">
+                        {cells.map((c: string) => (
+                          <li key={c} className="truncate">
+                            {c}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   ),
                 )}
