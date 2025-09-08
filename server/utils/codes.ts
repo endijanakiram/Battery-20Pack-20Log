@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import bwipjs from "bwip-js";
 import { CODES_DIR } from "./db";
+import { getSupabase, ensureBucket } from "./supabase";
 
 export type CodeType = "barcode" | "qr";
 
@@ -107,13 +108,26 @@ export async function generateCodes(
       ? await generateBarcodePng(masterPayload, masterHuman)
       : await generateQrPng(masterPayload, masterHuman);
 
-  // Write files
+  // Write files (Supabase if configured, else filesystem)
+  const s = getSupabase();
   const moduleUrls: Record<string, string> = {};
+  if (s) {
+    await ensureBucket("codes", true);
+    for (const m of moduleBuffers) {
+      await s.storage.from("codes").upload(m.name, m.buf, { contentType: "image/png", upsert: true });
+      const { data } = s.storage.from("codes").getPublicUrl(m.name);
+      moduleUrls[m.id] = data.publicUrl;
+    }
+    await s.storage.from("codes").upload(masterName, masterBuf, { contentType: "image/png", upsert: true });
+    const { data: masterPub } = s.storage.from("codes").getPublicUrl(masterName);
+    return { moduleUrls, masterUrl: masterPub.publicUrl };
+  }
+
   for (const m of moduleBuffers) {
     fs.writeFileSync(outputPath(m.name), m.buf);
-    moduleUrls[m.id] = `/files/codes/${m.name}`;
+    moduleUrls[m.id] = `/api/files/codes/${m.name}`;
   }
   fs.writeFileSync(outputPath(masterName), masterBuf);
 
-  return { moduleUrls, masterUrl: `/files/codes/${masterName}` };
+  return { moduleUrls, masterUrl: `/api/files/codes/${masterName}` };
 }
