@@ -114,12 +114,21 @@ export async function generateCodes(
   if (s) {
     await ensureBucket("codes", true);
     for (const m of moduleBuffers) {
-      await s.storage.from("codes").upload(m.name, m.buf, { contentType: "image/png", upsert: true });
+      await s.storage
+        .from("codes")
+        .upload(m.name, m.buf, { contentType: "image/png", upsert: true });
       const { data } = s.storage.from("codes").getPublicUrl(m.name);
       moduleUrls[m.id] = data.publicUrl;
     }
-    await s.storage.from("codes").upload(masterName, masterBuf, { contentType: "image/png", upsert: true });
-    const { data: masterPub } = s.storage.from("codes").getPublicUrl(masterName);
+    await s.storage
+      .from("codes")
+      .upload(masterName, masterBuf, {
+        contentType: "image/png",
+        upsert: true,
+      });
+    const { data: masterPub } = s.storage
+      .from("codes")
+      .getPublicUrl(masterName);
     return { moduleUrls, masterUrl: masterPub.publicUrl };
   }
 
