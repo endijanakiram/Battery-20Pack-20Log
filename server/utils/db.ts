@@ -1,7 +1,9 @@
 import fs from "fs";
 import path from "path";
 
-export const DATA_DIR = path.join(process.cwd(), "server", "data");
+const IS_NETLIFY = !!(process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const BASE_DIR = IS_NETLIFY ? path.join("/tmp", "battery-data") : path.join(process.cwd(), "server", "data");
+export const DATA_DIR = BASE_DIR;
 export const CODES_DIR = path.join(DATA_DIR, "codes");
 export const DB_PATH = path.join(DATA_DIR, "battery_db.json");
 
