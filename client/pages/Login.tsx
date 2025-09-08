@@ -11,7 +11,7 @@ export default function Login() {
 
   function handleLogin() {
     if (mode === "operator") {
-      if (user === "user" && pass === "123456") {
+      if (user === "user" && pass === "User@123") {
         localStorage.setItem("auth_role", "operator");
         nav("/dashboard");
         return;
