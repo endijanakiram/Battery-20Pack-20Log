@@ -11,7 +11,10 @@ import NotFound from "./pages/NotFound";
 
 if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
   try {
-    Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN, tracesSampleRate: 0.2 });
+    Sentry.init({
+      dsn: import.meta.env.VITE_SENTRY_DSN,
+      tracesSampleRate: 0.2,
+    });
   } catch (e) {
     // ignore initialization errors in dev
     // eslint-disable-next-line no-console
