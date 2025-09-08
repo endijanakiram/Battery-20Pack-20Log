@@ -16,7 +16,7 @@ export default function Login() {
         nav("/dashboard");
         return;
       }
-      alert("Invalid operator credentials");
+      alert("Invalid admin credentials");
     } else {
       if (user === "nxrivot@gmail.com" && pass === "NX100@123") {
         localStorage.setItem("auth_role", "admin");
