@@ -1,5 +1,6 @@
 import "./global.css";
 
+import * as Sentry from "@sentry/react";
 import { createRoot } from "react-dom/client";
 import { Toaster as Sonner } from "sonner";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -7,6 +8,8 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+
+Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN, tracesSampleRate: 0.2 });
 
 function Guard({
   role,
