@@ -1,15 +1,21 @@
 [build]
-  command = "pnpm run build:client"
-  functions = "netlify/functions"
+  command = "pnpm run build"     
   publish = "dist/spa"
-
+  functions = "netlify/functions"
 
 [functions]
- external_node_modules = ["express", "serverless-http"]
-  node_bundler = "esbuild"
-  
+  node_bundler = "esbuild"       # use esbuild to bundle functions
+  # remove external_node_modules unless you're certain those modules will be installed at runtime
+  # external_node_modules = ["express", "serverless-http"]
+
 [[redirects]]
-  force = true
   from = "/api/*"
-  status = 200
   to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+[dev]
+  framework = "vite"
+  targetPort = 8080
+  port = 8888
+  publish = "dist"
