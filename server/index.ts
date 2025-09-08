@@ -22,6 +22,30 @@ export function createServer() {
 
   // Prepare data directories
   ensureDataDirs();
+  // DEBUG: log and rewrite Netlify function path so both raw and proxied URLs work
+  app.use((req, _res, next) => {
+    console.log('[REQ BEFORE REWRITE]', req.method, 'origUrl=', req.originalUrl || req.url);
+    next();
+  });
+
+  app.use((req, _res, next) => {
+  const prefix = '/.netlify/functions/api';
+  if (req.url.startsWith(prefix)) {
+    const rest = req.url.slice(prefix.length) || '/';
+    req.url = '/api' + rest;
+    req.originalUrl = req.originalUrl
+      ? req.originalUrl.replace(prefix, '/api')
+      : req.url;
+    console.log(
+      '[REQ REWRITTEN]',
+      'newUrl=',
+      req.url,
+      'originalWas=',
+      prefix + rest,
+    );
+  }
+  next();
+});
 
   // Middleware
   app.use(cors());

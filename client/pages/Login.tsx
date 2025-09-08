@@ -23,7 +23,7 @@ export default function Login() {
         nav("/dashboard");
         return;
       }
-      alert("Invalid operator credentials");
+      alert("Invalid admin credentials");
     } else {
       if (adOk) {
         localStorage.setItem("auth_role", "admin");

@@ -1,17 +1,16 @@
 [build]
-  command = "pnpm run build:client"
-  functions = "netlify/functions"
+  command = "pnpm run build"
   publish = "dist/spa"
-
+  functions = "netlify/functions"
 
 [functions]
   node_bundler = "esbuild"
-  
+
 [[redirects]]
-  force = true
   from = "/api/*"
-  status = 200
   to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
 
 [[redirects]]
   from = "/*"

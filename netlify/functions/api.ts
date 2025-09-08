@@ -1,6 +1,4 @@
 import serverless from "serverless-http";
-
-import serverless from "serverless-http";
 import { createServer } from "../../server";
 
 const app = createServer();

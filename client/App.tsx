@@ -9,7 +9,15 @@ import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
-Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN, tracesSampleRate: 0.2 });
+if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
+  try {
+    Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN, tracesSampleRate: 0.2 });
+  } catch (e) {
+    // ignore initialization errors in dev
+    // eslint-disable-next-line no-console
+    console.warn("Sentry init failed", e);
+  }
+}
 
 function Guard({
   role,
