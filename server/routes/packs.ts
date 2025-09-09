@@ -164,7 +164,7 @@ export const generatePack: RequestHandler = async (req, res) => {
     return res.status(409).json({ error: "Duplicate cells in DB", conflicts });
   }
 
-  const ids = allocateModuleIds(db, requiredCount);
+  const ids = allocateModuleIds(db, desiredCount);
 
   const createdAt = new Date().toISOString();
 
@@ -178,17 +178,21 @@ export const generatePack: RequestHandler = async (req, res) => {
 
     const modules: Record<string, string[]> = {};
     const codes: Record<string, string> = { master: bundle.masterUrl };
-    if (requiredCount >= 1) {
-      modules[ids[0]] = m1;
-      codes[ids[0]] = bundle.moduleUrls[ids[0]];
+    let idx = 0;
+    if (m1.length > 0) {
+      modules[ids[idx]] = m1;
+      codes[ids[idx]] = bundle.moduleUrls[ids[idx]];
+      idx++;
     }
-    if (requiredCount >= 2) {
-      modules[ids[1]] = m2;
-      codes[ids[1]] = bundle.moduleUrls[ids[1]];
+    if (m2.length > 0) {
+      modules[ids[idx]] = m2;
+      codes[ids[idx]] = bundle.moduleUrls[ids[idx]];
+      idx++;
     }
-    if (requiredCount >= 3) {
-      modules[ids[2]] = m3;
-      codes[ids[2]] = bundle.moduleUrls[ids[2]];
+    if (m3.length > 0) {
+      modules[ids[idx]] = m3;
+      codes[ids[idx]] = bundle.moduleUrls[ids[idx]];
+      idx++;
     }
 
     const doc: PackDoc = {
