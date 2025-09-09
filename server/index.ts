@@ -112,7 +112,7 @@ export function createServer() {
 
   // Sentry error handler after routes
   if (process.env.SENTRY_DSN) {
-    app.use(Sentry.expressErrorHandler());
+    // Sentry is initialized above; no express-specific handlers wired
   }
 
   return app;
