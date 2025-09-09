@@ -440,6 +440,51 @@ export const regenerateCodes: RequestHandler = async (req, res) => {
   }
 };
 
+// Param variants to avoid JSON body parsing issues in some environments
+export const regenerateCodesParam: RequestHandler = async (req, res) => {
+  const pack_serial = String(req.params.id || "").trim();
+  const type = String(req.params.type || "barcode").toLowerCase() as CodeType;
+  if (!pack_serial)
+    return res.status(400).json({ error: "pack_serial is required" });
+  const db = readDB();
+  const pack = db.packs[pack_serial];
+  if (!pack) return res.status(404).json({ error: "Pack not found" });
+  const moduleIds = Object.keys(pack.modules);
+  if (moduleIds.length < 1)
+    return res.status(400).json({ error: "Pack missing modules" });
+  try {
+    const bundle = await generateCodes(type || "barcode", moduleIds, pack_serial, pack.created_at);
+    const codes: Record<string, string> = { master: bundle.masterUrl };
+    for (const id of moduleIds) codes[id] = bundle.moduleUrls[id];
+    pack.codes = codes;
+    writeDB(db);
+    return res.json({ ok: true, pack, files: { modules: bundle.moduleUrls, master: bundle.masterUrl } });
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to regenerate codes", detail: String(err?.message || err) });
+  }
+};
+
+export const generateMasterOnlyParam: RequestHandler = async (req, res) => {
+  const pack_serial = String(req.params.id || "").trim();
+  const type = String(req.params.type || "barcode").toLowerCase() as CodeType;
+  if (!pack_serial)
+    return res.status(400).json({ error: "pack_serial is required" });
+  const db = readDB();
+  const pack = db.packs[pack_serial];
+  if (!pack) return res.status(404).json({ error: "Pack not found" });
+  const ids = Object.keys(pack.modules);
+  if (!ids.length)
+    return res.status(400).json({ error: "Pack missing modules" });
+  try {
+    const bundle = await generateCodes(type || "barcode", ids, pack_serial, pack.created_at);
+    pack.codes.master = bundle.masterUrl;
+    writeDB(db);
+    return res.json({ ok: true, master: bundle.masterUrl, pack });
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to generate master code", detail: String(err?.message || err) });
+  }
+};
+
 export const getDB: RequestHandler = (_req, res) => {
   const db = readDB();
   res.json(db);
