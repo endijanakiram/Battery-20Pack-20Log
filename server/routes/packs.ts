@@ -341,9 +341,9 @@ export const savePackOnly: RequestHandler = (req, res) => {
   }
 
   // ... later inside generatePack replace these lines:
-  const m1 = normalizeCells(module1_cells as any);
-  const m2 = normalizeCells((module2_cells as any) || (req.body as any).module2_cells);
-  const m3 = normalizeCells((req.body as any).module3_cells as any);
+const m1 = normalizeLines(module1_cells || "");
+const m2 = normalizeLines((module2_cells as string) || "");
+const m3 = normalizeLines(((req.body as any).module3_cells as string) || "");
 
   if (requiredCount >= 1 && m1.length === 0)
     return res.status(400).json({ error: "Module 1 cell list is required" });
