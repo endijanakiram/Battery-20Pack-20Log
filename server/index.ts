@@ -19,7 +19,6 @@ export function createServer() {
   // Sentry init (no-op if DSN missing)
   if (process.env.SENTRY_DSN) {
     Sentry.init({ dsn: process.env.SENTRY_DSN, tracesSampleRate: 0.2 });
-    app.use(Sentry.expressRequestMiddleware());
   }
 
   // Prepare data directories
