@@ -22,6 +22,8 @@ export interface GeneratedBundle {
   masterUrl: string;
 }
 
+const USE_REMOTE = !!process.env.NETLIFY || process.env.CODES_USE_REMOTE === "1";
+
 async function generateBarcodePng(
   payload: string,
   humanText: string,
@@ -29,6 +31,24 @@ async function generateBarcodePng(
   const margin = 8; // ≥1mm margin @203dpi
   const width = BARCODE_W_PX - margin * 2;
   const height = BARCODE_H_PX - margin * 2;
+  if (USE_REMOTE) {
+    const u = new URL("https://bwipjs-api.metafloor.com/");
+    u.searchParams.set("bcid", "code128");
+    u.searchParams.set("text", payload);
+    u.searchParams.set("scale", "3");
+    u.searchParams.set("includetext", "true");
+    u.searchParams.set("textxalign", "center");
+    u.searchParams.set("alttext", humanText);
+    u.searchParams.set("textsize", "18");
+    u.searchParams.set("backgroundcolor", "FFFFFF");
+    u.searchParams.set("paddingwidth", String(margin));
+    u.searchParams.set("paddingheight", String(margin));
+    u.searchParams.set("width", String(width));
+    u.searchParams.set("height", String(height));
+    const resp = await fetch(u.toString());
+    const ab = await resp.arrayBuffer();
+    return Buffer.from(new Uint8Array(ab));
+  }
   return await bwipjs.toBuffer({
     bcid: "code128",
     text: payload,
@@ -51,6 +71,21 @@ async function generateQrPng(
 ): Promise<Buffer> {
   const side = QR_SIDE_PX;
   const margin = 8; // ≥1mm margin @203dpi
+  if (USE_REMOTE) {
+    const u = new URL("https://bwipjs-api.metafloor.com/");
+    u.searchParams.set("bcid", "qrcode");
+    u.searchParams.set("text", payload);
+    u.searchParams.set("eclevel", "M");
+    u.searchParams.set("scale", "3");
+    u.searchParams.set("backgroundcolor", "FFFFFF");
+    u.searchParams.set("paddingwidth", String(margin));
+    u.searchParams.set("paddingheight", String(margin));
+    u.searchParams.set("width", String(side - margin * 2));
+    u.searchParams.set("height", String(side - margin * 2));
+    const resp = await fetch(u.toString());
+    const ab = await resp.arrayBuffer();
+    return Buffer.from(new Uint8Array(ab));
+  }
   return await bwipjs.toBuffer({
     bcid: "qrcode",
     text: payload,
