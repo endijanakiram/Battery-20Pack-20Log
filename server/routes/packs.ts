@@ -395,13 +395,14 @@ export const savePackOnly: RequestHandler = (req, res) => {
     return res.status(409).json({ error: "Duplicate cells in DB", conflicts });
   }
 
-  const ids = allocateModuleIds(db, requiredCount);
+  const ids = allocateModuleIds(db, desiredCount);
   const createdAt = new Date().toISOString();
 
   const modules: Record<string, string[]> = {};
-  if (requiredCount >= 1) modules[ids[0]] = m1;
-  if (requiredCount >= 2) modules[ids[1]] = m2;
-  if (requiredCount >= 3) modules[ids[2]] = m3;
+  let i = 0;
+  if (m1.length > 0) modules[ids[i++]] = m1;
+  if (m2.length > 0) modules[ids[i++]] = m2;
+  if (m3.length > 0) modules[ids[i++]] = m3;
 
   const doc: PackDoc = {
     pack_serial: finalPackSerial,
