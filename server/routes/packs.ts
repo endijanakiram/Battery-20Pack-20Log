@@ -125,7 +125,8 @@ export const generatePack: RequestHandler = async (req, res) => {
   );
   const m3 = normalizeCells((req.body as any).module3_cells as any);
 
-  const providedCount = (m1.length > 0 ? 1 : 0) + (m2.length > 0 ? 1 : 0) + (m3.length > 0 ? 1 : 0);
+  const providedCount =
+    (m1.length > 0 ? 1 : 0) + (m2.length > 0 ? 1 : 0) + (m3.length > 0 ? 1 : 0);
   const desiredCount = providedCount > 0 ? providedCount : requiredCount;
 
   if (desiredCount >= 1 && m1.length === 0)
@@ -356,7 +357,8 @@ export const savePackOnly: RequestHandler = (req, res) => {
   );
   const m3 = normalizeCells((req.body as any).module3_cells as any);
 
-  const providedCount = (m1.length > 0 ? 1 : 0) + (m2.length > 0 ? 1 : 0) + (m3.length > 0 ? 1 : 0);
+  const providedCount =
+    (m1.length > 0 ? 1 : 0) + (m2.length > 0 ? 1 : 0) + (m3.length > 0 ? 1 : 0);
   const desiredCount = providedCount > 0 ? providedCount : requiredCount;
 
   if (desiredCount >= 1 && m1.length === 0)
