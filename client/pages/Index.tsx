@@ -204,14 +204,10 @@ export default function Index() {
     if (!packSerial.trim()) return toast.error("Enter pack serial");
     setLoading(true);
     try {
-      const res = await fetch("/api/packs/regenerate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pack_serial: packSerial.trim(),
-          code_type: type,
-        }),
-      });
+      const res = await fetch(
+        `/api/packs/${encodeURIComponent(packSerial.trim())}/regenerate/${type}`,
+        { method: "POST" },
+      );
       const j = await res.json();
       if (!j.ok) throw new Error(j.error || "Failed");
       setLastFiles({ modules: j.files.modules, master: j.files.master });
@@ -230,14 +226,10 @@ export default function Index() {
     if (!packSerial.trim()) return toast.error("Enter pack serial");
     setLoading(true);
     try {
-      const res = await fetch("/api/packs/master-only", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pack_serial: packSerial.trim(),
-          code_type: codeType,
-        }),
-      });
+      const res = await fetch(
+        `/api/packs/${encodeURIComponent(packSerial.trim())}/master-only/${codeType}`,
+        { method: "POST" },
+      );
       const j = await res.json();
       if (!j.ok) throw new Error(j.error || "Failed");
       setLastFiles((lf) => ({ ...lf, master: j.master }));
