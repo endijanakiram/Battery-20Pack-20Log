@@ -473,12 +473,10 @@ export const regenerateCodesParam: RequestHandler = async (req, res) => {
       files: { modules: bundle.moduleUrls, master: bundle.masterUrl },
     });
   } catch (err: any) {
-    return res
-      .status(500)
-      .json({
-        error: "Failed to regenerate codes",
-        detail: String(err?.message || err),
-      });
+    return res.status(500).json({
+      error: "Failed to regenerate codes",
+      detail: String(err?.message || err),
+    });
   }
 };
 
@@ -504,12 +502,10 @@ export const generateMasterOnlyParam: RequestHandler = async (req, res) => {
     writeDB(db);
     return res.json({ ok: true, master: bundle.masterUrl, pack });
   } catch (err: any) {
-    return res
-      .status(500)
-      .json({
-        error: "Failed to generate master code",
-        detail: String(err?.message || err),
-      });
+    return res.status(500).json({
+      error: "Failed to generate master code",
+      detail: String(err?.message || err),
+    });
   }
 };
 
