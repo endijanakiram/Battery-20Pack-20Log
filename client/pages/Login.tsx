@@ -12,8 +12,9 @@ export default function Login() {
   function handleLogin(e?: React.FormEvent) {
     if (e) e.preventDefault();
     const opOk =
-      (user === "user" && pass === "123456") ||
-      (user === "user" && pass === "NXr!v0t#2025");
+      (user === "user" && pass === "QWE@123") ||
+      (user === "user" && pass === "NXr!v0t#2025") ||
+      (user === "user" && pass === "123456");
     const adOk =
       (user === "nxrivot@gmail.com" && pass === "NX100@123") ||
       (user === "nxrivot@gmail.com" && pass === "Adm!n#2025");
