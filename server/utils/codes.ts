@@ -22,7 +22,8 @@ export interface GeneratedBundle {
   masterUrl: string;
 }
 
-const USE_REMOTE = !!process.env.NETLIFY || process.env.CODES_USE_REMOTE === "1";
+const USE_REMOTE =
+  !!process.env.NETLIFY || process.env.CODES_USE_REMOTE === "1";
 
 async function generateBarcodePng(
   payload: string,
@@ -155,12 +156,10 @@ export async function generateCodes(
       const { data } = s.storage.from("codes").getPublicUrl(m.name);
       moduleUrls[m.id] = data.publicUrl;
     }
-    await s.storage
-      .from("codes")
-      .upload(masterName, masterBuf, {
-        contentType: "image/png",
-        upsert: true,
-      });
+    await s.storage.from("codes").upload(masterName, masterBuf, {
+      contentType: "image/png",
+      upsert: true,
+    });
     const { data: masterPub } = s.storage
       .from("codes")
       .getPublicUrl(masterName);
