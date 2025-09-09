@@ -113,7 +113,7 @@ export function createServer() {
 
   // Sentry error handler after routes
   if (process.env.SENTRY_DSN) {
-    app.use(Sentry.Handlers.errorHandler());
+    app.use(Sentry.expressErrorHandler());
   }
 
   return app;
