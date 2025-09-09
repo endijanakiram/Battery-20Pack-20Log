@@ -106,9 +106,23 @@ export const generatePack: RequestHandler = async (req, res) => {
         ? 2
         : 1;
 
-  const m1 = normalizeLines(module1_cells || "");
-  const m2 = normalizeLines((module2_cells as string) || "");
-  const m3 = normalizeLines(((req.body as any).module3_cells as string) || "");
+  // --- replace or add this helper near the top, replacing previous normalizeLines if you like
+  function normalizeCells(input?: string | string[] | null): string[] {
+    if (!input) return [];
+    if (Array.isArray(input)) {
+      return input.map((s) => String(s).trim()).filter(Boolean);
+    }
+    return String(input)
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
+  // ... later inside generatePack replace these lines:
+  const m1 = normalizeCells(module1_cells as any);
+  const m2 = normalizeCells((module2_cells as any) || (req.body as any).module2_cells);
+  const m3 = normalizeCells((req.body as any).module3_cells as any);
+
   if (requiredCount >= 1 && m1.length === 0)
     return res.status(400).json({ error: "Module 1 cell list is required" });
   if (requiredCount >= 2 && m2.length === 0)
@@ -314,9 +328,23 @@ export const savePackOnly: RequestHandler = (req, res) => {
         ? 2
         : 1;
 
-  const m1 = normalizeLines(module1_cells || "");
-  const m2 = normalizeLines((module2_cells as string) || "");
-  const m3 = normalizeLines((req.body as any).module3_cells || "");
+  // --- replace or add this helper near the top, replacing previous normalizeLines if you like
+  function normalizeCells(input?: string | string[] | null): string[] {
+    if (!input) return [];
+    if (Array.isArray(input)) {
+      return input.map((s) => String(s).trim()).filter(Boolean);
+    }
+    return String(input)
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
+  // ... later inside generatePack replace these lines:
+  const m1 = normalizeCells(module1_cells as any);
+  const m2 = normalizeCells((module2_cells as any) || (req.body as any).module2_cells);
+  const m3 = normalizeCells((req.body as any).module3_cells as any);
+
   if (requiredCount >= 1 && m1.length === 0)
     return res.status(400).json({ error: "Module 1 cell list is required" });
   if (requiredCount >= 2 && m2.length === 0)
