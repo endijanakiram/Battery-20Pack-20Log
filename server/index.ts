@@ -76,6 +76,10 @@ export function createServer() {
   app.post("/api/packs/regenerate", (req, res, next) =>
     import("./routes/packs").then((m) => m.regenerateCodes(req, res, next)),
   );
+  // Param-based variants (no JSON body required)
+  app.post("/api/packs/:id/regenerate/:type", regenerateCodesParam);
+  app.post("/api/packs/:id/master-only/:type", generateMasterOnlyParam);
+
   app.get("/api/packs", (req, res, next) =>
     import("./routes/packs").then((m) => m.listPacks(req, res, next)),
   );
