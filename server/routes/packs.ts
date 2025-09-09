@@ -125,11 +125,14 @@ export const generatePack: RequestHandler = async (req, res) => {
   );
   const m3 = normalizeCells((req.body as any).module3_cells as any);
 
-  if (requiredCount >= 1 && m1.length === 0)
+  const providedCount = (m1.length > 0 ? 1 : 0) + (m2.length > 0 ? 1 : 0) + (m3.length > 0 ? 1 : 0);
+  const desiredCount = providedCount > 0 ? providedCount : requiredCount;
+
+  if (desiredCount >= 1 && m1.length === 0)
     return res.status(400).json({ error: "Module 1 cell list is required" });
-  if (requiredCount >= 2 && m2.length === 0)
+  if (desiredCount >= 2 && m2.length === 0)
     return res.status(400).json({ error: "Module 2 cell list is required" });
-  if (requiredCount >= 3 && m3.length === 0)
+  if (desiredCount >= 3 && m3.length === 0)
     return res.status(400).json({ error: "Module 3 cell list is required" });
 
   // Check duplicates inside each module
@@ -349,11 +352,14 @@ export const savePackOnly: RequestHandler = (req, res) => {
   );
   const m3 = normalizeCells((req.body as any).module3_cells as any);
 
-  if (requiredCount >= 1 && m1.length === 0)
+  const providedCount = (m1.length > 0 ? 1 : 0) + (m2.length > 0 ? 1 : 0) + (m3.length > 0 ? 1 : 0);
+  const desiredCount = providedCount > 0 ? providedCount : requiredCount;
+
+  if (desiredCount >= 1 && m1.length === 0)
     return res.status(400).json({ error: "Module 1 cell list is required" });
-  if (requiredCount >= 2 && m2.length === 0)
+  if (desiredCount >= 2 && m2.length === 0)
     return res.status(400).json({ error: "Module 2 cell list is required" });
-  if (requiredCount >= 3 && m3.length === 0)
+  if (desiredCount >= 3 && m3.length === 0)
     return res.status(400).json({ error: "Module 3 cell list is required" });
 
   // Check duplicates inside each module
