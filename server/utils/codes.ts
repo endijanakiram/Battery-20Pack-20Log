@@ -91,7 +91,7 @@ async function generateQrPng(
     bcid: "qrcode",
     text: payload,
     eclevel: "M",
-    scale: 3,
+    scale: 2,
     backgroundcolor: "FFFFFF",
     paddingwidth: margin,
     paddingheight: margin,
