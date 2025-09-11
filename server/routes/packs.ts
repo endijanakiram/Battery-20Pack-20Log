@@ -74,22 +74,24 @@ function nextPackSerial(db: BatteryDB): string {
 }
 
 export const generatePack: RequestHandler = async (req, res) => {
-  const {
-    pack_serial,
-    module1_cells,
-    module2_cells,
-    code_type,
-    operator,
-    overwrite,
-  } = req.body as {
-    pack_serial?: string;
-    module1_cells: string;
-    module2_cells?: string;
-    module3_cells?: string;
-    code_type: CodeType;
-    operator?: string | null;
-    overwrite?: boolean;
-  };
+  const body = req.body as any;
+  const pack_serial = body.pack_serial as string | undefined;
+  const code_type = (body.code_type || body.codeType || body.type) as CodeType;
+  const operator = (body.operator ?? null) as string | null;
+  const overwrite = !!body.overwrite;
+
+  function pickCells(key: string): string | string[] | null {
+    if (body[key] != null) return body[key];
+    if (body.modules && (body.modules[key] != null)) return body.modules[key];
+    const short = key.replace(/module(\d)_cells/, 'm$1');
+    if (body[short] != null) return body[short];
+    if (body.modules && (body.modules[short] != null)) return body.modules[short];
+    return null;
+  }
+
+  const module1_cells = pickCells('module1_cells');
+  const module2_cells = pickCells('module2_cells');
+  const module3_cells = pickCells('module3_cells');
 
   const db = readDB();
   const finalPackSerial =
