@@ -476,18 +476,19 @@ function DashboardInner() {
 
     ctx.font = "11px Arial, Roboto, sans-serif";
     ctx.textAlign = "right";
-    ctx.fillText(`BATCH NO: ${opts.batch}`, 394, 20);
+    const MARGIN = 15;
+    ctx.fillText(`BATCH NO: ${opts.batch}`, 402 - MARGIN - 8, 20 + MARGIN);
 
     const qrSize = 110;
-    const qrX = 284;
-    const qrY = 24;
+    const qrX = 402 - MARGIN - qrSize;
+    const qrY = MARGIN + 24;
     const qrCanvas = await renderQrCanvas(opts.qrPayload, qrSize);
     ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
 
     const barW = 210;
     const barH = 40;
-    const barX = 8;
-    const barY = 38;
+    const barX = MARGIN + 0;
+    const barY = MARGIN + 38;
     const barCanvas = await renderBarcodeCanvas(opts.idText, barW, barH);
     ctx.drawImage(barCanvas, barX, barY, barW, barH);
 
@@ -499,17 +500,17 @@ function DashboardInner() {
     ctx.fillStyle = "#666666";
     ctx.font = "11px Arial, Roboto, sans-serif";
     ctx.textAlign = "left";
-    ctx.fillText(ddmmyyyy(new Date()), 8, 106);
+    ctx.fillText(ddmmyyyy(new Date()), MARGIN + 0, MARGIN + 106);
 
     ctx.fillStyle = "#000000";
     ctx.font = "bold 12px Arial, Roboto, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(`${opts.productName}-${opts.variant.toUpperCase()}`, barX + Math.floor(barW / 2), 126);
+    ctx.fillText(`${opts.productName}-${opts.variant.toUpperCase()}`, barX + Math.floor(barW / 2), MARGIN + 126);
 
     if (opts.moduleLabel) {
       ctx.font = "bold 36px Arial, Roboto, sans-serif";
       ctx.textAlign = "left";
-      ctx.fillText(opts.moduleLabel, 8, 160);
+      ctx.fillText(opts.moduleLabel, MARGIN + 0, MARGIN + 160);
     }
 
     return await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
