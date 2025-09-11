@@ -99,6 +99,11 @@ function DashboardInner() {
   const [productName, setProductName] = useState<string>("NX100");
   const [variant, setVariant] = useState<"Classic" | "Pro" | "Max">("Pro");
   const [serialExists, setSerialExists] = useState(false);
+  const [stickerFiles, setStickerFiles] = useState<{
+    master?: { url: string; name: string };
+    m1?: { url: string; name: string };
+    m2?: { url: string; name: string };
+  }>({});
 
   useEffect(() => {
     fetchDB();
