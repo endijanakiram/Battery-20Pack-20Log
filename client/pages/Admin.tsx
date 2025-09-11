@@ -287,7 +287,6 @@ export default function Admin() {
   async function generateStickers() {
     if (!current) return;
     const moduleIds = Object.keys(current.modules || {});
-    if (moduleIds.length < 2) return;
     const dateOnly = new Date(current.created_at).toISOString().slice(0, 10);
 
     const masterBlob = await drawSticker({
@@ -298,38 +297,38 @@ export default function Admin() {
       productName,
       variant,
     });
-    const m1Id = moduleIds[0];
-    const m2Id = moduleIds[1];
-    const m1Blob = await drawSticker({
-      moduleLabel: "M1",
-      idText: m1Id,
-      qrPayload: `${m1Id}|${dateOnly}`,
-      batch,
-      productName,
-      variant,
-    });
-    const m2Blob = await drawSticker({
-      moduleLabel: "M2",
-      idText: m2Id,
-      qrPayload: `${m2Id}|${dateOnly}`,
-      batch,
-      productName,
-      variant,
-    });
+
+    const nextFiles: typeof stickerFiles = {} as any;
+
+    const labels: ("M1" | "M2" | "M3")[] = ["M1", "M2", "M3"];
+    const count = Math.min(moduleIds.length, 3);
+    for (let i = 0; i < count; i++) {
+      const mid = moduleIds[i];
+      const blob = await drawSticker({
+        moduleLabel: labels[i],
+        idText: mid,
+        qrPayload: `${mid}|${dateOnly}`,
+        batch,
+        productName,
+        variant,
+      });
+      const name = `sticker_${labels[i]}_${mid}.png`;
+      const url = URL.createObjectURL(blob);
+      if (i === 0) nextFiles.m1 = { url, name } as any;
+      if (i === 1) nextFiles.m2 = { url, name } as any;
+      if (i === 2) nextFiles.m3 = { url, name } as any;
+    }
 
     const masterName = `sticker_Master_${current.pack_serial}.png`;
-    const m1Name = `sticker_M1_${m1Id}.png`;
-    const m2Name = `sticker_M2_${m2Id}.png`;
-
     const masterUrl = URL.createObjectURL(masterBlob);
-    const m1Url = URL.createObjectURL(m1Blob);
-    const m2Url = URL.createObjectURL(m2Blob);
+    nextFiles.master = { url: masterUrl, name: masterName } as any;
 
     setStickerFiles((prev) => {
-      if (prev.master?.url) URL.revokeObjectURL(prev.master.url);
-      if (prev.m1?.url) URL.revokeObjectURL(prev.m1.url);
-      if (prev.m2?.url) URL.revokeObjectURL(prev.m2.url);
-      return { master: { url: masterUrl, name: masterName }, m1: { url: m1Url, name: m1Name }, m2: { url: m2Url, name: m2Name } };
+      if (prev.master?.url && nextFiles.master) URL.revokeObjectURL(prev.master.url);
+      if (prev.m1?.url && nextFiles.m1) URL.revokeObjectURL(prev.m1.url);
+      if (prev.m2?.url && nextFiles.m2) URL.revokeObjectURL(prev.m2.url);
+      if (prev.m3?.url && nextFiles.m3) URL.revokeObjectURL(prev.m3.url);
+      return nextFiles;
     });
   }
 
