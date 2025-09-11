@@ -581,8 +581,7 @@ function DashboardInner() {
       }
     }
 
-    const createdISO: string = doc.created_at;
-    const dateOnly = new Date(createdISO).toISOString().slice(0, 10);
+    const dateOnly = new Date(createdISO!).toISOString().slice(0, 10);
     const batch = cfgBatch;
 
     const nextFiles: typeof stickerFiles = {};
@@ -591,7 +590,7 @@ function DashboardInner() {
       const labelMap: ("M1" | "M2" | "M3")[] = ["M1", "M2", "M3"];
       const needCount = modulesEnabled.m3 ? 3 : modulesEnabled.m2 ? 2 : 1;
       for (let i = 0; i < needCount; i++) {
-        const mid = moduleIds[i];
+        const mid = (moduleIds as string[])[i];
         const blob = await drawSticker({
           moduleLabel: labelMap[i],
           idText: mid,
