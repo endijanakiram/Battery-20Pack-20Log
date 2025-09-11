@@ -274,6 +274,8 @@ export const updateConfig: RequestHandler = (req, res) => {
     model,
     batch: batch ? batch.padStart(3, "0") : undefined,
     modulesEnabled: modulesEnabled as any,
+    productName,
+    variant,
   });
   res.json(cfg);
 };
