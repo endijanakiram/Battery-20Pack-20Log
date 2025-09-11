@@ -127,7 +127,7 @@ export default function Index() {
           module1_cells: normLines(m1),
           module2_cells: modulesEnabled.m2 ? normLines(m2) : undefined,
           module3_cells: modulesEnabled.m3 ? normLines(m3) : undefined,
-          code_type: codeType,
+          code_type: codeType === "sticker" ? "barcode" : codeType,
           operator: operator || null,
         }),
       });
@@ -151,7 +151,7 @@ export default function Index() {
               module1_cells: normLines(m1),
               module2_cells: modulesEnabled.m2 ? normLines(m2) : undefined,
               module3_cells: modulesEnabled.m3 ? normLines(m3) : undefined,
-              code_type: codeType,
+              code_type: codeType === "sticker" ? "barcode" : codeType,
               operator: operator || null,
               overwrite: true,
             }),
