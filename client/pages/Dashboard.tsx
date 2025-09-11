@@ -376,6 +376,16 @@ function DashboardInner() {
           const lines = j.conflicts
             .map((c: any) => `${c.cell} in ${c.pack} / ${c.module}`)
             .join("\n");
+          const m1Set = new Set<string>();
+          const m2Set = new Set<string>();
+          const m3Set = new Set<string>();
+          const mm1 = normLines(m1); const mm2 = normLines(m2); const mm3 = normLines(m3);
+          for (const c of j.conflicts) {
+            if (mm1.includes(c.cell)) m1Set.add(c.cell);
+            if (mm2.includes(c.cell)) m2Set.add(c.cell);
+            if (mm3.includes(c.cell)) m3Set.add(c.cell);
+          }
+          setDupM1(m1Set); setDupM2(m2Set); setDupM3(m3Set);
           setErrorInfo(`Duplicate cells found:\n${lines}`);
           toast.error("Duplicate cells found. See details below.", {
             duration: 5000,
@@ -387,6 +397,9 @@ function DashboardInner() {
           j.module2_duplicates?.length ||
           j.module3_duplicates?.length
         ) {
+          setDupM1(new Set(j.module1_duplicates || []));
+          setDupM2(new Set(j.module2_duplicates || []));
+          setDupM3(new Set(j.module3_duplicates || []));
           const msg = `Duplicate cells in module1: ${j.module1_duplicates?.join(", ") || "-"}\nDuplicate cells in module2: ${j.module2_duplicates?.join(", ") || "-"}\nDuplicate cells in module3: ${j.module3_duplicates?.join(", ") || "-"}`;
           setErrorInfo(msg);
           toast.error("Duplicate cells within module. See details below.", {
