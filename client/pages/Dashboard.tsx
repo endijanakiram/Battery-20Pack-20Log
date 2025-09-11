@@ -588,6 +588,26 @@ function DashboardInner() {
     toast.success("Stickers generated");
   }
 
+  function printStickerBlob(name: string, url: string) {
+    const w = window.open("", "_blank");
+    if (!w) return;
+    const html = `<!DOCTYPE html><html><head><meta charset='utf-8'/><title>${name}</title><style>
+      @page { size: auto; margin: 0; }
+      html, body { height: 100%; }
+      body { margin: 0; display:flex; align-items:center; justify-content:center; }
+      .wrap { width: 50mm; height: 25mm; display:flex; }
+      img { width: 100%; height: 100%; object-fit: contain; }
+    </style></head><body>
+      <div class='wrap'><img src='${url}'/></div>
+      <script>window.onload=()=>{window.focus();window.print();}</script>
+    </body></html>`;
+    w.document.open(); w.document.write(html); w.document.close();
+  }
+
+  function downloadStickerBlob(name: string, url: string) {
+    fetch(url).then(r=>r.blob()).then(b=>saveAs(b, name));
+  }
+
   function downloadImage(url: string) {
     fetch(url)
       .then((r) => r.blob())
@@ -864,7 +884,50 @@ function DashboardInner() {
               >
                 Regenerate as QR
               </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={generateStickers}
+              >
+                Regenerate Stickers
+              </Button>
             </div>
+
+            {(stickerFiles.m1 || stickerFiles.m2 || stickerFiles.master) && (
+              <section className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+                {stickerFiles.m1 && (
+                  <figure className="border rounded p-3 bg-white shadow-sm">
+                    <img src={stickerFiles.m1.url} alt={stickerFiles.m1.name} className="mx-auto h-auto max-w-full object-contain" />
+                    <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.m1.name}</figcaption>
+                    <div className="mt-2 flex justify-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m1!.name, stickerFiles.m1!.url)}>Print</Button>
+                      <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m1!.name, stickerFiles.m1!.url)}>Download</Button>
+                    </div>
+                  </figure>
+                )}
+                {stickerFiles.m2 && (
+                  <figure className="border rounded p-3 bg-white shadow-sm">
+                    <img src={stickerFiles.m2.url} alt={stickerFiles.m2.name} className="mx-auto h-auto max-w-full object-contain" />
+                    <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.m2.name}</figcaption>
+                    <div className="mt-2 flex justify-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m2!.name, stickerFiles.m2!.url)}>Print</Button>
+                      <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m2!.name, stickerFiles.m2!.url)}>Download</Button>
+                    </div>
+                  </figure>
+                )}
+                {stickerFiles.master && (
+                  <figure className="border rounded p-3 bg-white shadow-sm">
+                    <img src={stickerFiles.master.url} alt={stickerFiles.master.name} className="mx-auto h-auto max-w-full object-contain" />
+                    <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.master.name}</figcaption>
+                    <div className="mt-2 flex justify-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.master!.name, stickerFiles.master!.url)}>Print</Button>
+                      <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.master!.name, stickerFiles.master!.url)}>Download</Button>
+                    </div>
+                  </figure>
+                )}
+              </section>
+            )}
+
             <section className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-6">
               {lastFiles.modules &&
                 Object.entries(lastFiles.modules).map(([id, url]) => (
