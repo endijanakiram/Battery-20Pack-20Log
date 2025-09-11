@@ -158,15 +158,8 @@ function DashboardInner() {
         setPackSerial(j.next);
       }
     } catch {}
-    setM1("");
-    setM2("");
-    setM3("");
-    setOperator("");
+    // Do not clear cell data/operators automatically; only reset serial existence flag
     setSerialExists(false);
-    setDupM1(new Set());
-    setDupM2(new Set());
-    setDupM3(new Set());
-    setErrorInfo("");
   }
 
   function normLines(text: string) {
