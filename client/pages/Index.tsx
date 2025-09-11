@@ -75,6 +75,8 @@ export default function Index() {
       if (r.ok) {
         const j = (await r.json()) as Config;
         setModulesEnabled(j.modulesEnabled);
+        if ((j as any).batch) setCfgBatch((j as any).batch);
+        if ((j as any).productName) setProductName((j as any).productName);
       }
     } catch {}
   }
