@@ -643,13 +643,6 @@ function DashboardInner() {
       img { width: 100%; height: 100%; object-fit: contain; }
     </style></head><body>
       <div class='wrap'><img id='img' alt='${name}'/></div>
-      <script>
-        (function(){
-          var url = ${JSON.stringify('')};
-          try { url = ${JSON.stringify('')} + ${JSON.stringify('')} ; } catch(e) {}
-          url = ${JSON.stringify('')} + ${JSON.stringify('')};
-        })();
-      </script>
     </body></html>`;
     w.document.open(); w.document.write(html); w.document.close();
     // Inject script to set src and wait for load
