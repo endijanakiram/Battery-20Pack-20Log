@@ -316,14 +316,21 @@ export const generateMasterOnly: RequestHandler = async (req, res) => {
 };
 
 export const savePackOnly: RequestHandler = (req, res) => {
-  const { pack_serial, module1_cells, module2_cells, operator, overwrite } =
-    req.body as {
-      pack_serial?: string;
-      module1_cells: string;
-      module2_cells?: string;
-      operator?: string | null;
-      overwrite?: boolean;
-    };
+  const body2 = req.body as any;
+  const pack_serial = body2.pack_serial as string | undefined;
+  const operator = (body2.operator ?? null) as string | null;
+  const overwrite = !!body2.overwrite;
+  function pickCells2(key: string): string | string[] | null {
+    if (body2[key] != null) return body2[key];
+    if (body2.modules && (body2.modules[key] != null)) return body2.modules[key];
+    const short = key.replace(/module(\d)_cells/, 'm$1');
+    if (body2[short] != null) return body2[short];
+    if (body2.modules && (body2.modules[short] != null)) return body2.modules[short];
+    return null;
+  }
+  const module1_cells = pickCells2('module1_cells');
+  const module2_cells = pickCells2('module2_cells');
+  const module3_cells = pickCells2('module3_cells');
 
   const db = readDB();
   const finalPackSerial =
