@@ -662,8 +662,8 @@ export default function Admin() {
                 </Button>
               </div>
 
-              {(stickerFiles.m1 || stickerFiles.m2 || stickerFiles.master) && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+              {(stickerFiles.m1 || stickerFiles.m2 || stickerFiles.m3 || stickerFiles.master) && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-3">
                   {stickerFiles.m1 && (
                     <figure className="border rounded p-3 bg-white shadow-sm">
                       <img src={stickerFiles.m1.url} alt={stickerFiles.m1.name} className="mx-auto h-auto max-w-full object-contain" />
@@ -681,6 +681,16 @@ export default function Admin() {
                       <div className="mt-2 flex justify-center gap-2">
                         <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m2!.name, stickerFiles.m2!.url)}>Print</Button>
                         <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m2!.name, stickerFiles.m2!.url)}>Download</Button>
+                      </div>
+                    </figure>
+                  )}
+                  {stickerFiles.m3 && (
+                    <figure className="border rounded p-3 bg-white shadow-sm">
+                      <img src={stickerFiles.m3.url} alt={stickerFiles.m3.name} className="mx-auto h-auto max-w-full object-contain" />
+                      <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.m3.name}</figcaption>
+                      <div className="mt-2 flex justify-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m3!.name, stickerFiles.m3!.url)}>Print</Button>
+                        <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m3!.name, stickerFiles.m3!.url)}>Download</Button>
                       </div>
                     </figure>
                   )}
