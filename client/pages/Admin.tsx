@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
+import JsBarcode from "jsbarcode";
+import QRCode from "qrcode";
+import { saveAs } from "file-saver";
 
 interface PackDoc {
   pack_serial: string;
@@ -20,6 +23,13 @@ export default function Admin() {
   const [model, setModel] = useState<"LFP6" | "LFP9">("LFP9");
   const [batch, setBatch] = useState("001");
   const [nextSerial, setNextSerial] = useState("");
+  const [productName, setProductName] = useState<string>("NX100");
+  const [variant, setVariant] = useState<"Classic" | "Pro" | "Max">("Pro");
+  const [stickerFiles, setStickerFiles] = useState<{
+    master?: { url: string; name: string };
+    m1?: { url: string; name: string };
+    m2?: { url: string; name: string };
+  }>({});
   const [m1On, setM1On] = useState(true);
   const [m2On, setM2On] = useState(true);
   const [m3On, setM3On] = useState(false);
@@ -60,6 +70,8 @@ export default function Admin() {
         setM2On(!!j.modulesEnabled.m2);
         setM3On(!!j.modulesEnabled.m3);
       }
+      if ((j as any).productName) setProductName((j as any).productName);
+      if ((j as any).variant) setVariant((j as any).variant);
     }
   }
 
@@ -169,6 +181,176 @@ export default function Admin() {
       await load();
       setSelected("");
     }
+  }
+
+  function ddmmyyyy(d: Date) {
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = String(d.getFullYear());
+    return `${dd}-${mm}-${yyyy}`;
+  }
+
+  async function renderBarcodeCanvas(text: string, width: number, height: number) {
+    const c = document.createElement("canvas");
+    c.width = width;
+    c.height = height;
+    JsBarcode(c, text, {
+      format: "CODE128",
+      displayValue: false,
+      margin: 8,
+      width: 2,
+      height: height - 8,
+    } as any);
+    return c;
+  }
+
+  async function renderQrCanvas(payload: string, size: number) {
+    const c = document.createElement("canvas");
+    c.width = size;
+    c.height = size;
+    await QRCode.toCanvas(c, payload, {
+      errorCorrectionLevel: "M",
+      margin: 1,
+      width: size,
+      color: { dark: "#000000", light: "#FFFFFF" },
+    });
+    return c;
+  }
+
+  async function drawSticker(opts: {
+    moduleLabel?: "M1" | "M2" | null;
+    idText: string;
+    qrPayload: string;
+    batch: string;
+    productName: string;
+    variant: "Classic" | "Pro" | "Max";
+  }): Promise<Blob> {
+    await (document as any).fonts?.ready;
+    const W = 402;
+    const H = 201;
+    const MARGIN = 15;
+    const canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext("2d")!;
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = "#000000";
+    ctx.font = "bold 22px Arial, Roboto, sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("RIVOT MOTORS", 23, 39);
+
+    ctx.font = "11px Arial, Roboto, sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText(`BATCH NO: ${opts.batch}`, 402 - MARGIN - 8, 20 + MARGIN);
+
+    const qrSize = 110;
+    const qrX = 402 - MARGIN - qrSize;
+    const qrY = MARGIN + 24;
+    const qrCanvas = await renderQrCanvas(opts.qrPayload, qrSize);
+    ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
+
+    const barW = 210;
+    const barH = 40;
+    const barX = MARGIN + 0;
+    const barY = MARGIN + 38;
+    const barCanvas = await renderBarcodeCanvas(opts.idText, barW, barH);
+    ctx.drawImage(barCanvas, barX, barY, barW, barH);
+
+    ctx.fillStyle = "#000000";
+    ctx.font = "12px Arial, Roboto, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(opts.idText, barX + Math.floor(barW / 2), barY + barH + 14);
+
+    ctx.fillStyle = "#666666";
+    ctx.font = "11px Arial, Roboto, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(ddmmyyyy(new Date()), MARGIN + 0, MARGIN + 106);
+
+    ctx.fillStyle = "#000000";
+    ctx.font = "bold 12px Arial, Roboto, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`${opts.productName}-${opts.variant.toUpperCase()}`, barX + Math.floor(barW / 2), MARGIN + 126);
+
+    if (opts.moduleLabel) {
+      ctx.font = "bold 36px Arial, Roboto, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(opts.moduleLabel, MARGIN + 0, MARGIN + 160);
+    }
+
+    return await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
+  }
+
+  async function generateStickers() {
+    if (!current) return;
+    const moduleIds = Object.keys(current.modules || {});
+    if (moduleIds.length < 2) return;
+    const dateOnly = new Date(current.created_at).toISOString().slice(0, 10);
+
+    const masterBlob = await drawSticker({
+      moduleLabel: null,
+      idText: current.pack_serial,
+      qrPayload: `${current.pack_serial}|${dateOnly}`,
+      batch,
+      productName,
+      variant,
+    });
+    const m1Id = moduleIds[0];
+    const m2Id = moduleIds[1];
+    const m1Blob = await drawSticker({
+      moduleLabel: "M1",
+      idText: m1Id,
+      qrPayload: `${m1Id}|${dateOnly}`,
+      batch,
+      productName,
+      variant,
+    });
+    const m2Blob = await drawSticker({
+      moduleLabel: "M2",
+      idText: m2Id,
+      qrPayload: `${m2Id}|${dateOnly}`,
+      batch,
+      productName,
+      variant,
+    });
+
+    const masterName = `sticker_Master_${current.pack_serial}.png`;
+    const m1Name = `sticker_M1_${m1Id}.png`;
+    const m2Name = `sticker_M2_${m2Id}.png`;
+
+    const masterUrl = URL.createObjectURL(masterBlob);
+    const m1Url = URL.createObjectURL(m1Blob);
+    const m2Url = URL.createObjectURL(m2Blob);
+
+    setStickerFiles((prev) => {
+      if (prev.master?.url) URL.revokeObjectURL(prev.master.url);
+      if (prev.m1?.url) URL.revokeObjectURL(prev.m1.url);
+      if (prev.m2?.url) URL.revokeObjectURL(prev.m2.url);
+      return { master: { url: masterUrl, name: masterName }, m1: { url: m1Url, name: m1Name }, m2: { url: m2Url, name: m2Name } };
+    });
+  }
+
+  function printStickerBlob(name: string, url: string) {
+    const w = window.open("", "_blank");
+    if (!w) return;
+    const html = `<!DOCTYPE html><html><head><meta charset='utf-8'/><title>${name}</title><style>
+      @page { size: auto; margin: 0; }
+      html, body { height: 100%; }
+      body { margin: 0; display:flex; align-items:center; justify-content:center; }
+      .wrap { width: 50mm; height: 25mm; display:flex; }
+      img { width: 100%; height: 100%; object-fit: contain; }
+    </style></head><body>
+      <div class='wrap'><img src='${url}'/></div>
+      <script>window.onload=()=>{window.focus();window.print();}</script>
+    </body></html>`;
+    w.document.open(); w.document.write(html); w.document.close();
+  }
+
+  function downloadStickerBlob(name: string, url: string) {
+    fetch(url).then(r=>r.blob()).then(b=>saveAs(b, name));
   }
 
   function downloadImage(url: string) {
@@ -470,132 +652,51 @@ export default function Admin() {
                 </div>
               </div>
               <div className="flex gap-2 mt-4">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={async () => {
-                    if (!current) return;
-                    const r = await fetch("/api/packs/regenerate", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        pack_serial: current.pack_serial,
-                        code_type: "barcode",
-                      }),
-                    });
-                    const j = await r.json();
-                    if (j.ok) {
-                      setPacks((ps) =>
-                        ps.map((p) =>
-                          p.pack_serial === current.pack_serial ? j.pack : p,
-                        ),
-                      );
-                    }
-                  }}
-                >
-                  Regenerate as Barcode
+                <Button variant="outline" size="sm" onClick={saveEdits}>
+                  Save
                 </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={async () => {
-                    if (!current) return;
-                    const r = await fetch("/api/packs/regenerate", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        pack_serial: current.pack_serial,
-                        code_type: "qr",
-                      }),
-                    });
-                    const j = await r.json();
-                    if (j.ok) {
-                      setPacks((ps) =>
-                        ps.map((p) =>
-                          p.pack_serial === current.pack_serial ? j.pack : p,
-                        ),
-                      );
-                    }
-                  }}
-                >
-                  Regenerate as QR
+                <Button variant="destructive" size="sm" onClick={deletePack}>
+                  Delete
+                </Button>
+                <Button variant="outline" size="sm" onClick={generateStickers}>
+                  Generate Stickers
                 </Button>
               </div>
 
-              {/* Codes preview */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-                {Object.entries(current.codes)
-                  .filter(([k]) => k !== "master")
-                  .map(([id, url]) => (
-                    <figure
-                      key={id}
-                      className="border rounded p-3 bg-white shadow-sm"
-                    >
-                      <img
-                        src={url}
-                        alt={id}
-                        className="mx-auto h-auto max-w-full object-contain"
-                      />
-                      <figcaption className="mt-2 text-center text-xs break-all">
-                        {url.split("/").pop()}
-                      </figcaption>
-                      {/_QR_/.test(url) && (
-                        <div className="text-center text-xs mt-1">
-                          {(url.split("/").pop() || "").split("_")[0]}
-                        </div>
-                      )}
+              {(stickerFiles.m1 || stickerFiles.m2 || stickerFiles.master) && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+                  {stickerFiles.m1 && (
+                    <figure className="border rounded p-3 bg-white shadow-sm">
+                      <img src={stickerFiles.m1.url} alt={stickerFiles.m1.name} className="mx-auto h-auto max-w-full object-contain" />
+                      <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.m1.name}</figcaption>
                       <div className="mt-2 flex justify-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => printImage(url)}
-                        >
-                          Print
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => downloadImage(url)}
-                        >
-                          Download
-                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m1!.name, stickerFiles.m1!.url)}>Print</Button>
+                        <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m1!.name, stickerFiles.m1!.url)}>Download</Button>
                       </div>
                     </figure>
-                  ))}
-                {current.codes.master && (
-                  <figure className="border rounded p-3 bg-white shadow-sm">
-                    <img
-                      src={current.codes.master}
-                      alt="master"
-                      className="mx-auto h-auto max-w-full object-contain"
-                    />
-                    <figcaption className="mt-2 text-center text-xs break-all">
-                      {current.codes.master.split("/").pop()}
-                    </figcaption>
-                    {/_QR_/.test(current.codes.master) && (
-                      <div className="text-center text-xs mt-1">
-                        {current.codes.master.split("/").pop()!.split("_")[0]}
+                  )}
+                  {stickerFiles.m2 && (
+                    <figure className="border rounded p-3 bg-white shadow-sm">
+                      <img src={stickerFiles.m2.url} alt={stickerFiles.m2.name} className="mx-auto h-auto max-w-full object-contain" />
+                      <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.m2.name}</figcaption>
+                      <div className="mt-2 flex justify-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m2!.name, stickerFiles.m2!.url)}>Print</Button>
+                        <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m2!.name, stickerFiles.m2!.url)}>Download</Button>
                       </div>
-                    )}
-                    <div className="mt-2 flex justify-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => printImage(current.codes.master)}
-                      >
-                        Print
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => downloadImage(current.codes.master)}
-                      >
-                        Download
-                      </Button>
-                    </div>
-                  </figure>
-                )}
-              </div>
+                    </figure>
+                  )}
+                  {stickerFiles.master && (
+                    <figure className="border rounded p-3 bg-white shadow-sm">
+                      <img src={stickerFiles.master.url} alt={stickerFiles.master.name} className="mx-auto h-auto max-w-full object-contain" />
+                      <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.master.name}</figcaption>
+                      <div className="mt-2 flex justify-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.master!.name, stickerFiles.master!.url)}>Print</Button>
+                        <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.master!.name, stickerFiles.master!.url)}>Download</Button>
+                      </div>
+                    </figure>
+                  )}
+                </div>
+              )}
 
               {/* Module editors */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
