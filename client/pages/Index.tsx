@@ -240,7 +240,7 @@ export default function Index() {
       .right { width: 20mm; text-align: right; box-sizing: border-box; }
       .title { font-weight: 800; font-size: 10px; letter-spacing: 0.2px; }
       .batch { font-size: 8px; }
-      .barcode { width: 30mm; height: 15mm; object-fit: contain; display:block; }
+      .barcode { width: 30mm; height: 9mm; object-fit: contain; display:block; }
       .qr { width: 20mm; height: 20mm; object-fit: contain; display:block; margin-left:auto; }
       .serial { text-align:center; font-size:8px; margin-top: 0.8mm; }
       .date { text-align:center; font-size:8px; margin-top: 0.6mm; }
