@@ -95,6 +95,9 @@ function DashboardInner() {
     m2: true,
     m3: false,
   });
+  const [cfgBatch, setCfgBatch] = useState<string>("001");
+  const [productName, setProductName] = useState<string>("NX100");
+  const [variant, setVariant] = useState<"Classic" | "Pro" | "Max">("Pro");
   const [serialExists, setSerialExists] = useState(false);
 
   useEffect(() => {
