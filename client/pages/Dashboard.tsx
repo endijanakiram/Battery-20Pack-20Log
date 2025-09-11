@@ -314,6 +314,10 @@ function DashboardInner() {
         `/api/packs/${encodeURIComponent(packSerial.trim())}/master-only/barcode`,
         { method: "POST" },
       );
+      if (res.status === 409) {
+        toast.error("Master already exists");
+        return;
+      }
       const j = await res.json();
       if (!j.ok) throw new Error(j.error || "Failed");
       setLastFiles((lf) => ({ ...lf, master: j.master }));
@@ -632,6 +636,52 @@ function DashboardInner() {
     toast.success("Stickers generated");
   }
 
+  async function handleModulesOnly() {
+    if (!packSerial.trim()) return toast.error("Enter pack serial");
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/packs/modules-only`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pack_serial: packSerial.trim(), code_type: "barcode" }),
+      });
+      if (res.status === 409) {
+        toast.error("Module codes already exist");
+        return;
+      }
+      const j = await res.json();
+      if (!j.ok) throw new Error(j.error || "Failed");
+      setLastFiles((lf) => ({ ...lf, modules: j.modules }));
+      await generateStickerPreviews({ includeModules: true, includeMaster: false, packSerial: j.pack.pack_serial, createdAtISO: j.pack.created_at, moduleIds: Object.keys(j.pack.modules || {}) });
+      toast.success("Generated module codes");
+    } catch (e: any) {
+      toast.error(e?.message || "Error generating modules");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleRegenerateAll() {
+    if (!packSerial.trim()) return toast.error("Enter pack serial");
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/packs/regenerate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pack_serial: packSerial.trim(), code_type: "barcode" }),
+      });
+      const j = await res.json();
+      if (!j.ok) throw new Error(j.error || "Failed");
+      setLastFiles({ modules: j.files.modules, master: j.master });
+      await generateStickerPreviews({ includeModules: true, includeMaster: true, packSerial: j.pack.pack_serial, createdAtISO: j.pack.created_at, moduleIds: Object.keys(j.pack.modules || {}) });
+      toast.success("Regenerated codes");
+    } catch (e: any) {
+      toast.error(e?.message || "Error regenerating");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function printStickerBlob(name: string, url: string) {
     const w = window.open("", "_blank");
     if (!w) return;
@@ -887,11 +937,14 @@ function DashboardInner() {
           >
             Generate Master Only
           </Button>
-          <Button variant="outline" onClick={() => generateStickerPreviews({ includeModules: true, includeMaster: false })} disabled={loading}>
+          <Button variant="outline" onClick={handleModulesOnly} disabled={loading}>
             Modules Only
           </Button>
           <Button variant="outline" onClick={handleSaveOnly} disabled={loading}>
             Save Without Codes
+          </Button>
+          <Button variant="destructive" onClick={handleRegenerateAll} disabled={loading}>
+            Regenerate (All)
           </Button>
           <Button variant="outline" onClick={clearAll}>
             Clear
