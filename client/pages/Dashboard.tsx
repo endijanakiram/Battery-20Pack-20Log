@@ -60,6 +60,8 @@ interface Config {
   model: "LFP6" | "LFP9";
   batch: string;
   modulesEnabled: ModulesEnabled;
+  productName: string;
+  variant: "Classic" | "Pro" | "Max";
 }
 
 type CodeType = "barcode" | "qr" | "sticker";
