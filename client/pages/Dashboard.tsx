@@ -308,12 +308,49 @@ function DashboardInner() {
 
   async function handleMasterOnly() {
     if (!packSerial.trim()) return toast.error("Enter pack serial");
+    // Ensure module cells exist in DB for fresh packs
+    const need2 = modulesEnabled.m1 && modulesEnabled.m2 && !modulesEnabled.m3;
+    const need3 = modulesEnabled.m1 && modulesEnabled.m2 && modulesEnabled.m3;
+    const m1Arr = normLines(m1);
+    const m2Arr = modulesEnabled.m2 ? normLines(m2) : [];
+    const m3Arr = modulesEnabled.m3 ? normLines(m3) : [];
+    if (
+      m1Arr.length === 0 ||
+      (need2 && m2Arr.length === 0) ||
+      (need3 && (m2Arr.length === 0 || m3Arr.length === 0))
+    ) {
+      toast.error("Paste required module cell lists per config");
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await fetch(
+      let res = await fetch(
         `/api/packs/${encodeURIComponent(packSerial.trim())}/master-only/barcode`,
         { method: "POST" },
       );
+      if (res.status === 404 || res.status === 400) {
+        // Create pack first
+        const saved = await fetch("/api/packs/save-only", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            pack_serial: packSerial.trim(),
+            module1_cells: m1Arr,
+            module2_cells: modulesEnabled.m2 ? m2Arr : undefined,
+            module3_cells: modulesEnabled.m3 ? m3Arr : undefined,
+            operator: operator || null,
+          }),
+        });
+        if (!saved.ok) {
+          const j = await saved.json();
+          throw new Error(j.error || "Failed saving pack");
+        }
+        res = await fetch(
+          `/api/packs/${encodeURIComponent(packSerial.trim())}/master-only/barcode`,
+          { method: "POST" },
+        );
+      }
       if (res.status === 409) {
         toast.error("Master already exists");
         return;
@@ -638,13 +675,49 @@ function DashboardInner() {
 
   async function handleModulesOnly() {
     if (!packSerial.trim()) return toast.error("Enter pack serial");
+    const need2 = modulesEnabled.m1 && modulesEnabled.m2 && !modulesEnabled.m3;
+    const need3 = modulesEnabled.m1 && modulesEnabled.m2 && modulesEnabled.m3;
+    const m1Arr = normLines(m1);
+    const m2Arr = modulesEnabled.m2 ? normLines(m2) : [];
+    const m3Arr = modulesEnabled.m3 ? normLines(m3) : [];
+    if (
+      m1Arr.length === 0 ||
+      (need2 && m2Arr.length === 0) ||
+      (need3 && (m2Arr.length === 0 || m3Arr.length === 0))
+    ) {
+      toast.error("Paste required module cell lists per config");
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await fetch(`/api/packs/modules-only`, {
+      let res = await fetch(`/api/packs/modules-only`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pack_serial: packSerial.trim(), code_type: "barcode" }),
       });
+      if (res.status === 404) {
+        const saved = await fetch("/api/packs/save-only", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            pack_serial: packSerial.trim(),
+            module1_cells: m1Arr,
+            module2_cells: modulesEnabled.m2 ? m2Arr : undefined,
+            module3_cells: modulesEnabled.m3 ? m3Arr : undefined,
+            operator: operator || null,
+          }),
+        });
+        if (!saved.ok) {
+          const j = await saved.json();
+          throw new Error(j.error || "Failed saving pack");
+        }
+        res = await fetch(`/api/packs/modules-only`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pack_serial: packSerial.trim(), code_type: "barcode" }),
+        });
+      }
       if (res.status === 409) {
         toast.error("Module codes already exist");
         return;
@@ -927,28 +1000,49 @@ function DashboardInner() {
         )}
 
         <section className="mt-4 flex flex-wrap gap-2">
-          <Button onClick={handleGenerate} disabled={loading}>
-            Generate Modules + Master
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={handleMasterOnly}
-            disabled={loading}
-          >
-            Generate Master Only
-          </Button>
-          <Button variant="outline" onClick={handleModulesOnly} disabled={loading}>
-            Modules Only
-          </Button>
-          <Button variant="outline" onClick={handleSaveOnly} disabled={loading}>
-            Save Without Codes
-          </Button>
-          <Button variant="destructive" onClick={handleRegenerateAll} disabled={loading}>
-            Regenerate (All)
-          </Button>
-          <Button variant="outline" onClick={clearAll}>
-            Clear
-          </Button>
+          {(() => {
+            const packId = packSerial.trim();
+            const doc = (db.packs as any)?.[packId];
+            const moduleIds = doc ? Object.keys(doc.modules || {}) : [];
+            const needCount = modulesEnabled.m3 ? 3 : modulesEnabled.m2 ? 2 : 1;
+            let hasModuleCodes = false;
+            if (doc && doc.codes) {
+              for (let i = 0; i < Math.min(needCount, moduleIds.length); i++) {
+                const mid = moduleIds[i];
+                if (doc.codes[mid]) { hasModuleCodes = true; break; }
+              }
+            }
+            const hasMaster = !!(doc && doc.codes && doc.codes.master);
+            const disableCombined = hasModuleCodes || hasMaster;
+            const disableModulesOnly = hasModuleCodes;
+            const disableMasterOnly = hasMaster;
+            return (
+              <>
+                <Button onClick={handleGenerate} disabled={loading || disableCombined}>
+                  Generate Modules + Master
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={handleMasterOnly}
+                  disabled={loading || disableMasterOnly || disableCombined}
+                >
+                  Generate Master Only
+                </Button>
+                <Button variant="outline" onClick={handleModulesOnly} disabled={loading || disableModulesOnly || disableCombined}>
+                  Modules Only
+                </Button>
+                <Button variant="outline" onClick={handleSaveOnly} disabled={loading}>
+                  Save Without Codes
+                </Button>
+                <Button variant="destructive" onClick={handleRegenerateAll} disabled={loading}>
+                  Regenerate (All)
+                </Button>
+                <Button variant="outline" onClick={clearAll}>
+                  Clear
+                </Button>
+              </>
+            );
+          })()}
           <div className="ml-auto text-sm text-slate-500 flex items-center gap-3">
             <span>Total packs: {packsCount}</span>
           </div>
