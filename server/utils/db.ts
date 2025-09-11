@@ -23,6 +23,8 @@ export interface Config {
   model: "LFP6" | "LFP9";
   batch: string; // 3-digit string
   modulesEnabled: { m1: boolean; m2: boolean; m3: boolean };
+  productName: string; // e.g., NX100
+  variant: "Classic" | "Pro" | "Max";
 }
 
 export interface BatteryDB {
@@ -41,6 +43,8 @@ export function readDB(): BatteryDB {
     model: "LFP9",
     batch: "001",
     modulesEnabled: { m1: true, m2: true, m3: false },
+    productName: "NX100",
+    variant: "Pro",
   };
   if (!fs.existsSync(DB_PATH)) {
     const empty: BatteryDB = { packs: {}, config: defaultCfg };
@@ -54,6 +58,12 @@ export function readDB(): BatteryDB {
     if (!parsed.config) parsed.config = defaultCfg;
     if (!(parsed.config as any).modulesEnabled) {
       (parsed.config as any).modulesEnabled = { m1: true, m2: true, m3: false };
+    }
+    if (!(parsed.config as any).productName) {
+      (parsed.config as any).productName = "NX100";
+    }
+    if (!(parsed.config as any).variant) {
+      (parsed.config as any).variant = "Pro";
     }
     return parsed;
   } catch {
@@ -76,6 +86,12 @@ export function writeConfig(partial: Partial<Config>) {
   db.config = { ...db.config, ...partial } as Config;
   if (!(db.config as any).modulesEnabled) {
     (db.config as any).modulesEnabled = { m1: true, m2: true, m3: false };
+  }
+  if (!(db.config as any).productName) {
+    (db.config as any).productName = "NX100";
+  }
+  if (!(db.config as any).variant) {
+    (db.config as any).variant = "Pro";
   }
   writeDB(db);
   return db.config;
