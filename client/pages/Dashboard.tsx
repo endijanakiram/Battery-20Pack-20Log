@@ -777,8 +777,12 @@ function DashboardInner() {
               <Textarea
                 rows={12}
                 value={m2}
-                onChange={(e) => setM2(e.target.value)}
+                onChange={(e) => {
+                  setM2(e.target.value);
+                  setDupM2(new Set());
+                }}
                 placeholder="Paste each cell serial on a new line"
+                className={dupM2.size ? "border-red-500" : undefined}
               />
             </div>
           )}
