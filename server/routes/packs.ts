@@ -120,12 +120,10 @@ export const generatePack: RequestHandler = async (req, res) => {
       .filter(Boolean);
   }
 
-  // ... later inside generatePack replace these lines:
+  // normalize provided cells (strings with newlines or arrays)
   const m1 = normalizeCells(module1_cells as any);
-  const m2 = normalizeCells(
-    (module2_cells as any) || (req.body as any).module2_cells,
-  );
-  const m3 = normalizeCells((req.body as any).module3_cells as any);
+  const m2 = normalizeCells(module2_cells as any);
+  const m3 = normalizeCells(module3_cells as any);
 
   const providedCount =
     (m1.length > 0 ? 1 : 0) + (m2.length > 0 ? 1 : 0) + (m3.length > 0 ? 1 : 0);
@@ -359,12 +357,10 @@ export const savePackOnly: RequestHandler = (req, res) => {
       .filter(Boolean);
   }
 
-  // ... later inside generatePack replace these lines:
+  // normalize provided cells (strings with newlines or arrays)
   const m1 = normalizeCells(module1_cells as any);
-  const m2 = normalizeCells(
-    (module2_cells as any) || (req.body as any).module2_cells,
-  );
-  const m3 = normalizeCells((req.body as any).module3_cells as any);
+  const m2 = normalizeCells(module2_cells as any);
+  const m3 = normalizeCells(module3_cells as any);
 
   const providedCount =
     (m1.length > 0 ? 1 : 0) + (m2.length > 0 ? 1 : 0) + (m3.length > 0 ? 1 : 0);
