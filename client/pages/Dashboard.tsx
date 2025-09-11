@@ -187,7 +187,7 @@ function DashboardInner() {
     const buildPayload = (overwriteFlag?: boolean) => {
       const payload: any = {
         pack_serial: packSerial.trim(),
-        code_type: codeType === "sticker" ? "barcode" : codeType,
+        code_type: "barcode",
         module1_cells: m1Arr,
       };
       if (modulesEnabled.m2) payload.module2_cells = m2Arr;
