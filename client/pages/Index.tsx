@@ -226,9 +226,8 @@ export default function Index() {
     const bar = isMaster ? lastSticker.master.barcode : lastSticker.modules[moduleId!].barcode;
     const qr = isMaster ? lastSticker.master.qr : lastSticker.modules[moduleId!].qr;
     const today = new Date().toLocaleDateString("en-GB");
-    const bottom = isMaster
-      ? `${productName}-${modulesEnabled.m1 && modulesEnabled.m2 && modulesEnabled.m3 ? "MAX" : modulesEnabled.m1 && modulesEnabled.m2 ? "PRO" : "CLASSIC"}`
-      : moduleId!;
+    const serialText = isMaster ? packSerial : moduleId!;
+    const bottomText = `${productName} ${variant}`;
     const w = window.open("", "_blank");
     if (!w) return;
     const html = `<!DOCTYPE html><html><head><meta charset='utf-8'/><title>Sticker</title><style>
@@ -237,15 +236,15 @@ export default function Index() {
       body { margin: 0; display:flex; align-items:center; justify-content:center; }
       .wrap { width: 50mm; height: 25mm; box-sizing: border-box; padding: 1mm; font-family: Arial, sans-serif; }
       .row { display:flex; justify-content: space-between; align-items: flex-start; }
-      .left { width: 28mm; }
-      .right { width: 18mm; text-align: right; }
-      .title { font-weight: 800; letter-spacing: 0.5px; }
-      .batch { font-size: 9px; }
-      .barcode { width: 40mm; height: 15mm; object-fit: contain; }
-      .qr { width: 20mm; height: 20mm; object-fit: contain; }
-      .serial { text-align:center; font-size:9px; margin-top: 1mm; }
-      .date { text-align:center; font-size:9px; margin-top: 1mm; }
-      .bottom { font-size: 10px; margin-top: 2mm; }
+      .left { width: 30mm; box-sizing: border-box; }
+      .right { width: 20mm; text-align: right; box-sizing: border-box; }
+      .title { font-weight: 800; font-size: 10px; letter-spacing: 0.2px; }
+      .batch { font-size: 8px; }
+      .barcode { width: 30mm; height: 15mm; object-fit: contain; display:block; }
+      .qr { width: 20mm; height: 20mm; object-fit: contain; display:block; margin-left:auto; }
+      .serial { text-align:center; font-size:8px; margin-top: 0.8mm; }
+      .date { text-align:center; font-size:8px; margin-top: 0.6mm; }
+      .bottom { font-size: 9px; margin-top: 1mm; font-weight: 600; }
     </style></head><body>
       <div class='wrap'>
         <div class='row'>
@@ -255,14 +254,14 @@ export default function Index() {
         <div class='row' style='margin-top:1mm;'>
           <div class='left'>
             <img class='barcode' src='${bar}'/>
-            <div class='serial'>${packSerial}</div>
+            <div class='serial'>${serialText}</div>
             <div class='date'>${today}</div>
           </div>
           <div class='right'>
             <img class='qr' src='${qr}'/>
           </div>
         </div>
-        <div class='bottom'>${bottom}</div>
+        <div class='bottom'>${bottomText}</div>
       </div>
       <script>window.onload=()=>{window.focus();window.print();}</script>
     </body></html>`;
