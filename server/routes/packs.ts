@@ -315,6 +315,11 @@ export const generateMasterOnly: RequestHandler = async (req, res) => {
   const ids = Object.keys(pack.modules);
   if (!ids.length)
     return res.status(400).json({ error: "Pack missing modules" });
+  // prevent duplicate master unless overwrite
+  const overwrite = !!(req.body as any).overwrite;
+  if (!overwrite && pack.codes?.master) {
+    return res.status(409).json({ error: "Master already exists", exists: true });
+  }
   try {
     const bundle = await generateCodes(
       code_type || "barcode",
@@ -531,6 +536,10 @@ export const generateMasterOnlyParam: RequestHandler = async (req, res) => {
   const ids = Object.keys(pack.modules);
   if (!ids.length)
     return res.status(400).json({ error: "Pack missing modules" });
+  const overwrite = String((req.query.overwrite ?? "")).toLowerCase() === "1";
+  if (!overwrite && pack.codes?.master) {
+    return res.status(409).json({ error: "Master already exists", exists: true });
+  }
   try {
     const bundle = await generateCodes(
       type || "barcode",
@@ -552,6 +561,43 @@ export const generateMasterOnlyParam: RequestHandler = async (req, res) => {
 export const getDB: RequestHandler = (_req, res) => {
   const db = readDB();
   res.json(db);
+};
+
+export const generateModulesOnly: RequestHandler = async (req, res) => {
+  const { pack_serial, code_type } = req.body as {
+    pack_serial: string;
+    code_type: CodeType;
+  };
+  if (!pack_serial)
+    return res.status(400).json({ error: "pack_serial is required" });
+  const db = readDB();
+  const pack = db.packs[pack_serial];
+  if (!pack) return res.status(404).json({ error: "Pack not found" });
+  const moduleIds = Object.keys(pack.modules);
+  if (!moduleIds.length)
+    return res.status(400).json({ error: "Pack missing modules" });
+  const overwrite = !!(req.body as any).overwrite;
+  if (!overwrite) {
+    for (const mid of moduleIds) {
+      if (pack.codes && pack.codes[mid]) {
+        return res.status(409).json({ error: "Module codes already exist", exists: true, module: mid });
+      }
+    }
+  }
+  try {
+    const bundle = await generateCodes(
+      code_type || "barcode",
+      moduleIds,
+      pack_serial,
+      pack.created_at,
+    );
+    pack.codes = pack.codes || ({} as any);
+    for (const mid of moduleIds) pack.codes[mid] = bundle.moduleUrls[mid];
+    writeDB(db);
+    return res.json({ ok: true, modules: bundle.moduleUrls, pack });
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to generate module codes", detail: String(err?.message || err) });
+  }
 };
 
 export const uploadDB: RequestHandler = (req, res) => {
