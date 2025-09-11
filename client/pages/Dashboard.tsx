@@ -294,7 +294,7 @@ function DashboardInner() {
     setLoading(true);
     try {
       const res = await fetch(
-        `/api/packs/${encodeURIComponent(packSerial.trim())}/master-only/${codeType}`,
+        `/api/packs/${encodeURIComponent(packSerial.trim())}/master-only/barcode`,
         { method: "POST" },
       );
       const j = await res.json();
@@ -739,52 +739,6 @@ function DashboardInner() {
               className="mt-1"
             />
           </div>
-          <div className="md:col-span-4">
-            <label className="text-sm font-medium">Code Type</label>
-            <div className="mt-1 flex rounded-md border p-1">
-              <button
-                className={
-                  "flex-1 rounded px-3 py-2 text-sm " +
-                  (codeType === "barcode"
-                    ? "bg-emerald-600 text-white"
-                    : "hover:bg-slate-50")
-                }
-                onClick={() => setCodeType("barcode")}
-              >
-                Barcode (Code128)
-              </button>
-              <button
-                className={
-                  "flex-1 rounded px-3 py-2 text-sm " +
-                  (codeType === "qr"
-                    ? "bg-emerald-600 text-white"
-                    : "hover:bg-slate-50")
-                }
-                onClick={() => setCodeType("qr")}
-              >
-                QR
-              </button>
-          </div>
-          <div className="mt-2 flex rounded-md border p-1">
-            <button
-              className={
-                "flex-1 rounded px-3 py-2 text-sm " +
-                (codeType === "sticker"
-                  ? "bg-emerald-600 text-white"
-                  : "hover:bg-slate-50")
-              }
-              onClick={() => setCodeType("sticker")}
-            >
-              Sticker 50×25 (default)
-            </button>
-          </div>
-          </div>
-        </section>
-
-        <section className="mt-4">
-          <Button variant="outline" onClick={generateStickers} disabled={loading}>
-            Generate Stickers
-          </Button>
         </section>
 
         <section
@@ -858,6 +812,9 @@ function DashboardInner() {
           <Button variant="outline" onClick={handleSaveOnly} disabled={loading}>
             Save Without Codes
           </Button>
+          <Button variant="outline" onClick={generateStickers} disabled={loading}>
+            Generate Stickers
+          </Button>
           <Button variant="outline" onClick={clearAll}>
             Clear
           </Button>
@@ -866,142 +823,40 @@ function DashboardInner() {
           </div>
         </section>
 
-        {(lastFiles.modules && Object.keys(lastFiles.modules).length > 0) ||
-        lastFiles.master ? (
-          <>
-            <div className="mt-6 flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleRegenerate("barcode")}
-              >
-                Regenerate as Barcode
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleRegenerate("qr")}
-              >
-                Regenerate as QR
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={generateStickers}
-              >
-                Regenerate Stickers
-              </Button>
-            </div>
-
-            {(stickerFiles.m1 || stickerFiles.m2 || stickerFiles.master) && (
-              <section className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
-                {stickerFiles.m1 && (
-                  <figure className="border rounded p-3 bg-white shadow-sm">
-                    <img src={stickerFiles.m1.url} alt={stickerFiles.m1.name} className="mx-auto h-auto max-w-full object-contain" />
-                    <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.m1.name}</figcaption>
-                    <div className="mt-2 flex justify-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m1!.name, stickerFiles.m1!.url)}>Print</Button>
-                      <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m1!.name, stickerFiles.m1!.url)}>Download</Button>
-                    </div>
-                  </figure>
-                )}
-                {stickerFiles.m2 && (
-                  <figure className="border rounded p-3 bg-white shadow-sm">
-                    <img src={stickerFiles.m2.url} alt={stickerFiles.m2.name} className="mx-auto h-auto max-w-full object-contain" />
-                    <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.m2.name}</figcaption>
-                    <div className="mt-2 flex justify-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m2!.name, stickerFiles.m2!.url)}>Print</Button>
-                      <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m2!.name, stickerFiles.m2!.url)}>Download</Button>
-                    </div>
-                  </figure>
-                )}
-                {stickerFiles.master && (
-                  <figure className="border rounded p-3 bg-white shadow-sm">
-                    <img src={stickerFiles.master.url} alt={stickerFiles.master.name} className="mx-auto h-auto max-w-full object-contain" />
-                    <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.master.name}</figcaption>
-                    <div className="mt-2 flex justify-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.master!.name, stickerFiles.master!.url)}>Print</Button>
-                      <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.master!.name, stickerFiles.master!.url)}>Download</Button>
-                    </div>
-                  </figure>
-                )}
-              </section>
+        {(stickerFiles.m1 || stickerFiles.m2 || stickerFiles.master) && (
+          <section className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+            {stickerFiles.m1 && (
+              <figure className="border rounded p-3 bg-white shadow-sm">
+                <img src={stickerFiles.m1.url} alt={stickerFiles.m1.name} className="mx-auto h-auto max-w-full object-contain" />
+                <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.m1.name}</figcaption>
+                <div className="mt-2 flex justify-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m1!.name, stickerFiles.m1!.url)}>Print</Button>
+                  <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m1!.name, stickerFiles.m1!.url)}>Download</Button>
+                </div>
+              </figure>
             )}
-
-            <section className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-6">
-              {lastFiles.modules &&
-                Object.entries(lastFiles.modules).map(([id, url]) => (
-                  <figure
-                    key={id}
-                    className="border rounded p-3 bg-white shadow-sm"
-                  >
-                    <img
-                      src={url}
-                      alt={id}
-                      className="mx-auto h-auto max-w-full object-contain"
-                    />
-                    <figcaption className="mt-2 text-center text-xs break-all">
-                      {url.split("/").pop()}
-                    </figcaption>
-                    {/_QR_/.test(url) && (
-                      <div className="text-center text-xs mt-1">
-                        {(url.split("/").pop() || "").split("_")[0]}
-                      </div>
-                    )}
-                    <div className="mt-2 flex justify-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => printImage(url)}
-                      >
-                        Print
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => downloadImage(url)}
-                      >
-                        Download
-                      </Button>
-                    </div>
-                  </figure>
-                ))}
-              {lastFiles.master && (
-                <figure className="border rounded p-3 bg-white shadow-sm">
-                  <img
-                    src={lastFiles.master}
-                    alt="master code"
-                    className="mx-auto h-auto max-w-full object-contain"
-                  />
-                  <figcaption className="mt-2 text-center text-xs break-all">
-                    {lastFiles.master.split("/").pop()}
-                  </figcaption>
-                  {/_QR_/.test(lastFiles.master) && (
-                    <div className="text-center text-xs mt-1">
-                      {lastFiles.master.split("/").pop()!.split("_")[0]}
-                    </div>
-                  )}
-                  <div className="mt-2 flex justify-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => printImage(lastFiles.master!)}
-                    >
-                      Print
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => downloadImage(lastFiles.master!)}
-                    >
-                      Download
-                    </Button>
-                  </div>
-                </figure>
-              )}
-            </section>
-          </>
-        ) : null}
+            {stickerFiles.m2 && (
+              <figure className="border rounded p-3 bg-white shadow-sm">
+                <img src={stickerFiles.m2.url} alt={stickerFiles.m2.name} className="mx-auto h-auto max-w-full object-contain" />
+                <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.m2.name}</figcaption>
+                <div className="mt-2 flex justify-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m2!.name, stickerFiles.m2!.url)}>Print</Button>
+                  <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m2!.name, stickerFiles.m2!.url)}>Download</Button>
+                </div>
+              </figure>
+            )}
+            {stickerFiles.master && (
+              <figure className="border rounded p-3 bg-white shadow-sm">
+                <img src={stickerFiles.master.url} alt={stickerFiles.master.name} className="mx-auto h-auto max-w-full object-contain" />
+                <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.master.name}</figcaption>
+                <div className="mt-2 flex justify-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.master!.name, stickerFiles.master!.url)}>Print</Button>
+                  <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.master!.name, stickerFiles.master!.url)}>Download</Button>
+                </div>
+              </figure>
+            )}
+          </section>
+        )}
 
         <section className="mt-10 border-t pt-6">
           <h3 className="font-semibold">Trace / Search</h3>
