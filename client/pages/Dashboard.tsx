@@ -293,9 +293,9 @@ function DashboardInner() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pack_serial: packSerial.trim(),
-          module1_cells: m1,
-          module2_cells: modulesEnabled.m2 ? m2 : undefined,
-          module3_cells: modulesEnabled.m3 ? m3 : undefined,
+          module1_cells: normLines(m1),
+          module2_cells: modulesEnabled.m2 ? normLines(m2) : undefined,
+          module3_cells: modulesEnabled.m3 ? normLines(m3) : undefined,
           operator: operator || null,
         }),
       });
@@ -314,9 +314,9 @@ function DashboardInner() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               pack_serial: packSerial.trim(),
-              module1_cells: m1,
-              module2_cells: modulesEnabled.m2 ? m2 : undefined,
-              module3_cells: modulesEnabled.m3 ? m3 : undefined,
+              module1_cells: normLines(m1),
+              module2_cells: modulesEnabled.m2 ? normLines(m2) : undefined,
+              module3_cells: modulesEnabled.m3 ? normLines(m3) : undefined,
               operator: operator || null,
               overwrite: true,
             }),
