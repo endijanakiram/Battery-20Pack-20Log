@@ -469,10 +469,10 @@ function DashboardInner() {
     ctx.fillRect(0, 0, W, H);
 
     ctx.fillStyle = "#000000";
-    ctx.font = "bold 18px Arial, Roboto, sans-serif";
+    ctx.font = "bold 22px Arial, Roboto, sans-serif";
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
-    ctx.fillText("RIVOT MOTORS", 8, 24);
+    ctx.fillText("RIVOT MOTORS", 23, 39);
 
     ctx.font = "11px Arial, Roboto, sans-serif";
     ctx.textAlign = "right";
