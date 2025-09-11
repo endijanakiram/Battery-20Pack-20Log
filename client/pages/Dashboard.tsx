@@ -482,7 +482,7 @@ function DashboardInner() {
   }
 
   async function drawSticker(opts: {
-    moduleLabel?: "M1" | "M2" | null;
+    moduleLabel?: "M1" | "M2" | "M3" | null;
     idText: string; // barcode + human text (pack or module id)
     qrPayload: string; // QR data string
     batch: string;
