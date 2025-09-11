@@ -672,7 +672,7 @@ function DashboardInner() {
       });
       const j = await res.json();
       if (!j.ok) throw new Error(j.error || "Failed");
-      setLastFiles({ modules: j.files.modules, master: j.master });
+      setLastFiles({ modules: j.files.modules, master: j.files.master });
       await generateStickerPreviews({ includeModules: true, includeMaster: true, packSerial: j.pack.pack_serial, createdAtISO: j.pack.created_at, moduleIds: Object.keys(j.pack.modules || {}) });
       toast.success("Regenerated codes");
     } catch (e: any) {
