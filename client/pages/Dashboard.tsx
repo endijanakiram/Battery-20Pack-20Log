@@ -1024,11 +1024,11 @@ function DashboardInner() {
                 <Button
                   variant="secondary"
                   onClick={handleMasterOnly}
-                  disabled={loading || disableMasterOnly || disableCombined}
+                  disabled={loading || disableMasterOnly}
                 >
                   Generate Master Only
                 </Button>
-                <Button variant="outline" onClick={handleModulesOnly} disabled={loading || disableModulesOnly || disableCombined}>
+                <Button variant="outline" onClick={handleModulesOnly} disabled={loading || disableModulesOnly}>
                   Modules Only
                 </Button>
                 <Button variant="outline" onClick={handleSaveOnly} disabled={loading}>
