@@ -547,19 +547,23 @@ function DashboardInner() {
     return await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
   }
 
-  async function generateStickerPreviews(opts: { includeModules: boolean; includeMaster: boolean }) {
-    const pack = packSerial.trim();
+  async function generateStickerPreviews(opts: { includeModules: boolean; includeMaster: boolean; packSerial?: string; createdAtISO?: string; moduleIds?: string[] }) {
+    const pack = (opts.packSerial ?? packSerial).trim();
     if (!pack) {
       toast.error("Enter pack serial");
       return;
     }
-    const doc = (db.packs as any)[pack];
-    if (!doc) {
-      toast.error("Generate modules first, then retry");
-      return;
+    let createdISO: string | undefined = opts.createdAtISO;
+    let moduleIds: string[] | undefined = opts.moduleIds;
+    if (!createdISO || !moduleIds) {
+      const doc = (db.packs as any)[pack];
+      if (!doc) {
+        toast.error("Generate modules first, then retry");
+        return;
+      }
+      createdISO = doc.created_at;
+      moduleIds = Object.keys(doc.modules || {});
     }
-
-    const moduleIds = Object.keys(doc.modules || {});
     if (opts.includeModules) {
       if (modulesEnabled.m3) {
         if (moduleIds.length < 3) {
