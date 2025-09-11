@@ -571,7 +571,7 @@
   },
   "config": {
     "model": "LFP6",
-    "batch": "001",
+    "batch": "005",
     "modulesEnabled": {
       "m1": true,
       "m2": true,

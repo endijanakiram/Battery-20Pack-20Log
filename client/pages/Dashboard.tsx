@@ -446,8 +446,8 @@ function DashboardInner() {
 
   async function drawSticker(opts: {
     moduleLabel?: "M1" | "M2" | null;
-    serials: string[];
-    packSerial: string;
+    idText: string; // barcode + human text (pack or module id)
+    qrPayload: string; // QR data string
     batch: string;
     productName: string;
     variant: "Classic" | "Pro" | "Max";
@@ -476,40 +476,20 @@ function DashboardInner() {
     const qrSize = 110;
     const qrX = 284;
     const qrY = 24;
-    const qrPayload = JSON.stringify(
-      opts.moduleLabel
-        ? {
-            type: "MODULE",
-            module: opts.moduleLabel,
-            product: opts.productName,
-            variant: opts.variant.toUpperCase(),
-            batch: opts.batch,
-            serials: opts.serials,
-            date: ddmmyyyy(new Date()),
-          }
-        : {
-            type: "MASTER",
-            product: opts.productName,
-            variant: opts.variant.toUpperCase(),
-            batch: opts.batch,
-            serials: opts.serials,
-            date: ddmmyyyy(new Date()),
-          },
-    );
-    const qrCanvas = await renderQrCanvas(qrPayload, qrSize);
+    const qrCanvas = await renderQrCanvas(opts.qrPayload, qrSize);
     ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
 
     const barW = 210;
     const barH = 40;
     const barX = 8;
     const barY = 38;
-    const barCanvas = await renderBarcodeCanvas(opts.packSerial, barW, barH);
+    const barCanvas = await renderBarcodeCanvas(opts.idText, barW, barH);
     ctx.drawImage(barCanvas, barX, barY, barW, barH);
 
     ctx.fillStyle = "#000000";
     ctx.font = "12px Arial, Roboto, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(opts.packSerial, barX + Math.floor(barW / 2), barY + barH + 14);
+    ctx.fillText(opts.idText, barX + Math.floor(barW / 2), barY + barH + 14);
 
     ctx.fillStyle = "#666666";
     ctx.font = "11px Arial, Roboto, sans-serif";
@@ -536,38 +516,39 @@ function DashboardInner() {
       toast.error("Enter pack serial");
       return;
     }
-    const arr1 = normLines(m1);
-    const arr2 = modulesEnabled.m2 ? normLines(m2) : [];
-    let m1Arr = arr1;
-    let m2Arr = arr2;
-    if (modulesEnabled.m2 && m1Arr.length > 0 && m2Arr.length === 0) {
-      const half = Math.ceil(m1Arr.length / 2);
-      m2Arr = m1Arr.slice(half);
-      m1Arr = m1Arr.slice(0, half);
+    const doc = (db.packs as any)[pack];
+    if (!doc) {
+      toast.error("Generate modules first, then retry");
+      return;
     }
-    if (m1Arr.length === 0 && m2Arr.length === 0) {
-      toast.error("Provide cell serials in Module 1/2 inputs");
+    const moduleIds = Object.keys(doc.modules || {});
+    if (moduleIds.length < 2) {
+      toast.error("At least two modules (M1, M2) required");
       return;
     }
 
-    const allSerials = [...m1Arr, ...m2Arr];
+    const createdISO: string = doc.created_at;
+    const dateOnly = new Date(createdISO).toISOString().slice(0, 10); // YYYY-MM-DD for payload
     const batch = cfgBatch;
     const zip = new JSZip();
 
     const masterBlob = await drawSticker({
       moduleLabel: null,
-      serials: allSerials,
-      packSerial: pack,
+      idText: pack,
+      qrPayload: `${pack}|${dateOnly}`,
       batch,
       productName,
       variant,
     });
     zip.file(`sticker_master_${pack}.png`, masterBlob);
 
+    const m1Id = moduleIds[0];
+    const m2Id = moduleIds[1];
+
     const m1Blob = await drawSticker({
       moduleLabel: "M1",
-      serials: m1Arr,
-      packSerial: pack,
+      idText: m1Id,
+      qrPayload: `${m1Id}|${dateOnly}`,
       batch,
       productName,
       variant,
@@ -576,8 +557,8 @@ function DashboardInner() {
 
     const m2Blob = await drawSticker({
       moduleLabel: "M2",
-      serials: m2Arr,
-      packSerial: pack,
+      idText: m2Id,
+      qrPayload: `${m2Id}|${dateOnly}`,
       batch,
       productName,
       variant,
