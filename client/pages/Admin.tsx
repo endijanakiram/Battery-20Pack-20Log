@@ -188,6 +188,7 @@ export default function Admin() {
     const serial = name.split("_")[0];
     const isQR = /_QR_/.test(name);
     const isBar = /_BARCODE_/.test(name);
+    const today = new Date().toLocaleDateString("en-GB");
 
     const stickerW = 50; // mm
     const stickerH = 25; // mm
@@ -209,10 +210,12 @@ export default function Admin() {
   .barcode { width: 40mm; height: 9mm; display:block; margin: 0 auto; }
   .qr { width: 20mm; height: 20mm; display:block; margin: 0 auto; }
   .text { width: 100%; height: ${textH}mm; line-height: ${textH}mm; text-align: center; font-family: monospace; font-size: ${textH}mm; }
+  .date { width: 100%; text-align: center; font-family: monospace; font-size: ${textH}mm; margin-bottom: 0.5mm; }
 </style>
 </head>
 <body>
   <div class="sticker">
+    ${isBar ? `<div class="date">${today}</div>` : ""}
     <div class="img-wrap">
       <img class="${isQR ? "qr" : isBar ? "barcode" : "barcode"}" src="${url}" />
     </div>
