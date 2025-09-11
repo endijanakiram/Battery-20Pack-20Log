@@ -863,11 +863,11 @@ function DashboardInner() {
           >
             Generate Master Only
           </Button>
-          <Button variant="outline" onClick={handleSaveOnly} disabled={loading}>
-            Save Without Codes
-          </Button>
           <Button variant="outline" onClick={() => generateStickerPreviews({ includeModules: true, includeMaster: false })} disabled={loading}>
             Modules Only
+          </Button>
+          <Button variant="outline" onClick={handleSaveOnly} disabled={loading}>
+            Save Without Codes
           </Button>
           <Button variant="outline" onClick={clearAll}>
             Clear
