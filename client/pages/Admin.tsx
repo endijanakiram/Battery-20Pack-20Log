@@ -29,6 +29,7 @@ export default function Admin() {
     master?: { url: string; name: string };
     m1?: { url: string; name: string };
     m2?: { url: string; name: string };
+    m3?: { url: string; name: string };
   }>({});
   const [m1On, setM1On] = useState(true);
   const [m2On, setM2On] = useState(true);
