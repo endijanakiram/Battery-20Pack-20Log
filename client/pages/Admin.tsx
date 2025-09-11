@@ -302,8 +302,18 @@ export default function Admin() {
     const nextFiles: typeof stickerFiles = {} as any;
 
     const labels: ("M1" | "M2" | "M3")[] = ["M1", "M2", "M3"];
-    const count = Math.min(moduleIds.length, 3);
-    for (let i = 0; i < count; i++) {
+    const needCount = m3On ? 3 : m2On ? 2 : 1;
+    if (moduleIds.length < needCount) {
+      toast.error(
+        needCount === 3
+          ? "Three modules required by config (M1, M2, M3)"
+          : needCount === 2
+          ? "Two modules required by config (M1, M2)"
+          : "Module 1 required by config",
+      );
+      return;
+    }
+    for (let i = 0; i < needCount; i++) {
       const mid = moduleIds[i];
       const blob = await drawSticker({
         moduleLabel: labels[i],
