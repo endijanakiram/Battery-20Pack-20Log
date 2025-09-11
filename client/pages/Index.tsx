@@ -53,6 +53,9 @@ export default function Index() {
   }>({});
   const [nextSerial, setNextSerial] = useState<string>("");
   const [errorInfo, setErrorInfo] = useState<string>("");
+  const [cfgBatch, setCfgBatch] = useState<string>("001");
+  const [productName, setProductName] = useState<string>("NX100");
+  const [lastSticker, setLastSticker] = useState<any>(null);
   const [modulesEnabled, setModulesEnabled] = useState<ModulesEnabled>({
     m1: true,
     m2: true,
