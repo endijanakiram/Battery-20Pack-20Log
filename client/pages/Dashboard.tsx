@@ -402,7 +402,7 @@ function DashboardInner() {
 
     const stickerW = 50; // mm
     const stickerH = 25; // mm
-    const textH = 2.8; // mm
+    const textH = 2.4; // mm
 
     const w = window.open("", "_blank");
     if (!w) return;
@@ -418,8 +418,8 @@ function DashboardInner() {
   body { margin: 0; display: flex; align-items: center; justify-content: center; }
   .sticker { width: ${stickerW}mm; height: ${stickerH}mm; padding: 1mm; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
   .img-wrap { width: 100%; display: flex; justify-content: center; }
-  .barcode { width: 40mm; height: 15mm; }
-  .qr { width: 20mm; height: 20mm; }
+  .barcode { width: 40mm; height: 9mm; display:block; margin: 0 auto; }
+  .qr { width: 20mm; height: 20mm; display:block; margin: 0 auto; }
   .text { width: 100%; height: ${textH}mm; line-height: ${textH}mm; text-align: center; font-family: monospace; font-size: ${textH}mm; }
 </style>
 </head>
