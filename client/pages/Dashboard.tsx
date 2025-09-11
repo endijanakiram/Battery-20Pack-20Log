@@ -758,8 +758,12 @@ function DashboardInner() {
             <Textarea
               rows={12}
               value={m1}
-              onChange={(e) => setM1(e.target.value)}
+              onChange={(e) => {
+                setM1(e.target.value);
+                setDupM1(new Set());
+              }}
               placeholder="Paste each cell serial on a new line"
+              className={dupM1.size ? "border-red-500" : undefined}
             />
           </div>
           {modulesEnabled.m2 && (
