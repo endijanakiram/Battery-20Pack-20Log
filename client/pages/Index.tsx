@@ -39,7 +39,7 @@ export default function Index() {
   const nav = useNavigate();
   const [packSerial, setPackSerial] = useState("");
   const [operator, setOperator] = useState("");
-  const [codeType, setCodeType] = useState<CodeType>("barcode");
+  const [codeType, setCodeType] = useState<CodeType>("sticker");
   const [m1, setM1] = useState("");
   const [m2, setM2] = useState("");
   const [m3, setM3] = useState("");
