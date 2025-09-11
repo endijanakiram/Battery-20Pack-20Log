@@ -152,7 +152,10 @@ export function writeDB(db: BatteryDB) {
   if (s) {
     s.storage
       .from(DB_BUCKET)
-      .upload(DB_OBJECT, payload, { contentType: "application/json", upsert: true })
+      .upload(DB_OBJECT, payload, {
+        contentType: "application/json",
+        upsert: true,
+      })
       .catch(() => {});
   }
 }
