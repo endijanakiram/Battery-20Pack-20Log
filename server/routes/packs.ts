@@ -283,8 +283,8 @@ export const updateConfig: RequestHandler = (req, res) => {
   const autoVariant: "Classic" | "Pro" | "Max" = nextEnabled.m3
     ? "Max"
     : nextEnabled.m2
-    ? "Pro"
-    : "Classic";
+      ? "Pro"
+      : "Classic";
 
   const cfg = writeConfig({
     model,
@@ -318,7 +318,9 @@ export const generateMasterOnly: RequestHandler = async (req, res) => {
   // prevent duplicate master unless overwrite
   const overwrite = !!(req.body as any).overwrite;
   if (!overwrite && pack.codes?.master) {
-    return res.status(409).json({ error: "Master already exists", exists: true });
+    return res
+      .status(409)
+      .json({ error: "Master already exists", exists: true });
   }
   try {
     const bundle = await generateCodes(
@@ -536,9 +538,11 @@ export const generateMasterOnlyParam: RequestHandler = async (req, res) => {
   const ids = Object.keys(pack.modules);
   if (!ids.length)
     return res.status(400).json({ error: "Pack missing modules" });
-  const overwrite = String((req.query.overwrite ?? "")).toLowerCase() === "1";
+  const overwrite = String(req.query.overwrite ?? "").toLowerCase() === "1";
   if (!overwrite && pack.codes?.master) {
-    return res.status(409).json({ error: "Master already exists", exists: true });
+    return res
+      .status(409)
+      .json({ error: "Master already exists", exists: true });
   }
   try {
     const bundle = await generateCodes(
@@ -580,7 +584,13 @@ export const generateModulesOnly: RequestHandler = async (req, res) => {
   if (!overwrite) {
     for (const mid of moduleIds) {
       if (pack.codes && pack.codes[mid]) {
-        return res.status(409).json({ error: "Module codes already exist", exists: true, module: mid });
+        return res
+          .status(409)
+          .json({
+            error: "Module codes already exist",
+            exists: true,
+            module: mid,
+          });
       }
     }
   }
@@ -596,7 +606,12 @@ export const generateModulesOnly: RequestHandler = async (req, res) => {
     writeDB(db);
     return res.json({ ok: true, modules: bundle.moduleUrls, pack });
   } catch (err: any) {
-    return res.status(500).json({ error: "Failed to generate module codes", detail: String(err?.message || err) });
+    return res
+      .status(500)
+      .json({
+        error: "Failed to generate module codes",
+        detail: String(err?.message || err),
+      });
   }
 };
 

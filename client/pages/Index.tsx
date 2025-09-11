@@ -196,15 +196,27 @@ export default function Index() {
       setLastFiles({ modules: data.files.modules, master: data.files.master });
       if (codeType === "sticker") {
         const [bar, qr] = await Promise.all([
-          fetch(`/api/packs/${encodeURIComponent(packSerial.trim())}/regenerate/barcode`, { method: "POST" }).then((r) => r.json()),
-          fetch(`/api/packs/${encodeURIComponent(packSerial.trim())}/regenerate/qr`, { method: "POST" }).then((r) => r.json()),
+          fetch(
+            `/api/packs/${encodeURIComponent(packSerial.trim())}/regenerate/barcode`,
+            { method: "POST" },
+          ).then((r) => r.json()),
+          fetch(
+            `/api/packs/${encodeURIComponent(packSerial.trim())}/regenerate/qr`,
+            { method: "POST" },
+          ).then((r) => r.json()),
         ]);
         if (bar.ok && qr.ok) {
           const modules: any = {};
           for (const k of Object.keys(bar.files.modules)) {
-            modules[k] = { barcode: bar.files.modules[k], qr: qr.files.modules[k] };
+            modules[k] = {
+              barcode: bar.files.modules[k],
+              qr: qr.files.modules[k],
+            };
           }
-          setLastSticker({ modules, master: { barcode: bar.files.master, qr: qr.files.master } });
+          setLastSticker({
+            modules,
+            master: { barcode: bar.files.master, qr: qr.files.master },
+          });
         }
       }
       setPackSerial(data.pack.pack_serial);
@@ -223,8 +235,12 @@ export default function Index() {
   function printSticker(moduleId?: string) {
     if (!lastSticker) return;
     const isMaster = !moduleId;
-    const bar = isMaster ? lastSticker.master.barcode : lastSticker.modules[moduleId!].barcode;
-    const qr = isMaster ? lastSticker.master.qr : lastSticker.modules[moduleId!].qr;
+    const bar = isMaster
+      ? lastSticker.master.barcode
+      : lastSticker.modules[moduleId!].barcode;
+    const qr = isMaster
+      ? lastSticker.master.qr
+      : lastSticker.modules[moduleId!].qr;
     const today = new Date().toLocaleDateString("en-GB");
     const serialText = isMaster ? packSerial : moduleId!;
     const bottomText = `${productName} ${variant}`;
@@ -265,7 +281,9 @@ export default function Index() {
       </div>
       <script>window.onload=()=>{window.focus();window.print();}</script>
     </body></html>`;
-    w.document.open(); w.document.write(html); w.document.close();
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
   }
 
   async function handleRegenerate(type: CodeType) {
@@ -713,14 +731,24 @@ export default function Index() {
                       </div>
                     )}
                     <div className="mt-2 flex justify-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => printImage(url)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => printImage(url)}
+                      >
                         Print
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => downloadImage(url)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => downloadImage(url)}
+                      >
                         Download
                       </Button>
                       {codeType === "sticker" && lastSticker?.modules?.[id] && (
-                        <Button size="sm" onClick={() => printSticker(id)}>Print Sticker</Button>
+                        <Button size="sm" onClick={() => printSticker(id)}>
+                          Print Sticker
+                        </Button>
                       )}
                     </div>
                   </figure>
@@ -741,14 +769,24 @@ export default function Index() {
                     </div>
                   )}
                   <div className="mt-2 flex justify-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => printImage(lastFiles.master!)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => printImage(lastFiles.master!)}
+                    >
                       Print
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => downloadImage(lastFiles.master!)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => downloadImage(lastFiles.master!)}
+                    >
                       Download
                     </Button>
                     {codeType === "sticker" && lastSticker?.master && (
-                      <Button size="sm" onClick={() => printSticker(undefined)}>Print Sticker</Button>
+                      <Button size="sm" onClick={() => printSticker(undefined)}>
+                        Print Sticker
+                      </Button>
                     )}
                   </div>
                 </figure>

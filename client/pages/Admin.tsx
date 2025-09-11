@@ -191,7 +191,11 @@ export default function Admin() {
     return `${dd}-${mm}-${yyyy}`;
   }
 
-  async function renderBarcodeCanvas(text: string, width: number, height: number) {
+  async function renderBarcodeCanvas(
+    text: string,
+    width: number,
+    height: number,
+  ) {
     const c = document.createElement("canvas");
     c.width = width;
     c.height = height;
@@ -274,7 +278,11 @@ export default function Admin() {
     ctx.fillStyle = "#000000";
     ctx.font = "bold 12px Arial, Roboto, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(`${opts.productName}-${opts.variant.toUpperCase()}`, barX + Math.floor(barW / 2), MARGIN + 126);
+    ctx.fillText(
+      `${opts.productName}-${opts.variant.toUpperCase()}`,
+      barX + Math.floor(barW / 2),
+      MARGIN + 126,
+    );
 
     if (opts.moduleLabel) {
       ctx.font = "bold 36px Arial, Roboto, sans-serif";
@@ -282,7 +290,9 @@ export default function Admin() {
       ctx.fillText(opts.moduleLabel, MARGIN + 0, MARGIN + 160);
     }
 
-    return await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
+    return await new Promise<Blob>((resolve) =>
+      canvas.toBlob((b) => resolve(b!), "image/png"),
+    );
   }
 
   async function generateStickers() {
@@ -308,8 +318,8 @@ export default function Admin() {
         needCount === 3
           ? "Three modules required by config (M1, M2, M3)"
           : needCount === 2
-          ? "Two modules required by config (M1, M2)"
-          : "Module 1 required by config",
+            ? "Two modules required by config (M1, M2)"
+            : "Module 1 required by config",
       );
       return;
     }
@@ -335,7 +345,8 @@ export default function Admin() {
     nextFiles.master = { url: masterUrl, name: masterName } as any;
 
     setStickerFiles((prev) => {
-      if (prev.master?.url && nextFiles.master) URL.revokeObjectURL(prev.master.url);
+      if (prev.master?.url && nextFiles.master)
+        URL.revokeObjectURL(prev.master.url);
       if (prev.m1?.url && nextFiles.m1) URL.revokeObjectURL(prev.m1.url);
       if (prev.m2?.url && nextFiles.m2) URL.revokeObjectURL(prev.m2.url);
       if (prev.m3?.url && nextFiles.m3) URL.revokeObjectURL(prev.m3.url);
@@ -355,14 +366,27 @@ export default function Admin() {
     </style></head><body>
       <div class='wrap'><img id='img' alt='${name}'/></div>
     </body></html>`;
-    w.document.open(); w.document.write(html); w.document.close();
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
     const setAndPrint = () => {
-      const img = w.document.getElementById('img') as HTMLImageElement | null;
+      const img = w.document.getElementById("img") as HTMLImageElement | null;
       if (!img) return;
-      const doPrint = () => setTimeout(() => { try { w.focus(); w.print(); } catch {} }, 100);
+      const doPrint = () =>
+        setTimeout(() => {
+          try {
+            w.focus();
+            w.print();
+          } catch {}
+        }, 100);
       if ((img as any).decode) {
         img.src = url;
-        (img as any).decode().then(doPrint).catch(() => { img.onload = doPrint; });
+        (img as any)
+          .decode()
+          .then(doPrint)
+          .catch(() => {
+            img.onload = doPrint;
+          });
       } else {
         img.onload = doPrint;
         img.src = url;
@@ -372,7 +396,9 @@ export default function Admin() {
           const r = await fetch(url);
           const b = await r.blob();
           const rd = new FileReader();
-          rd.onload = () => { img.src = String(rd.result || ''); };
+          rd.onload = () => {
+            img.src = String(rd.result || "");
+          };
           rd.readAsDataURL(b);
         } catch {}
       };
@@ -381,7 +407,9 @@ export default function Admin() {
   }
 
   function downloadStickerBlob(name: string, url: string) {
-    fetch(url).then(r=>r.blob()).then(b=>saveAs(b, name));
+    fetch(url)
+      .then((r) => r.blob())
+      .then((b) => saveAs(b, name));
   }
 
   function downloadImage(url: string) {
@@ -694,45 +722,160 @@ export default function Admin() {
                 </Button>
               </div>
 
-              {(stickerFiles.m1 || stickerFiles.m2 || stickerFiles.m3 || stickerFiles.master) && (
+              {(stickerFiles.m1 ||
+                stickerFiles.m2 ||
+                stickerFiles.m3 ||
+                stickerFiles.master) && (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-3">
                   {stickerFiles.m1 && (
                     <figure className="border rounded p-3 bg-white shadow-sm">
-                      <img src={stickerFiles.m1.url} alt={stickerFiles.m1.name} className="mx-auto h-auto max-w-full object-contain" />
-                      <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.m1.name}</figcaption>
+                      <img
+                        src={stickerFiles.m1.url}
+                        alt={stickerFiles.m1.name}
+                        className="mx-auto h-auto max-w-full object-contain"
+                      />
+                      <figcaption className="mt-2 text-center text-xs break-all">
+                        {stickerFiles.m1.name}
+                      </figcaption>
                       <div className="mt-2 flex justify-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m1!.name, stickerFiles.m1!.url)}>Print</Button>
-                        <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m1!.name, stickerFiles.m1!.url)}>Download</Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            printStickerBlob(
+                              stickerFiles.m1!.name,
+                              stickerFiles.m1!.url,
+                            )
+                          }
+                        >
+                          Print
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            downloadStickerBlob(
+                              stickerFiles.m1!.name,
+                              stickerFiles.m1!.url,
+                            )
+                          }
+                        >
+                          Download
+                        </Button>
                       </div>
                     </figure>
                   )}
                   {stickerFiles.m2 && (
                     <figure className="border rounded p-3 bg-white shadow-sm">
-                      <img src={stickerFiles.m2.url} alt={stickerFiles.m2.name} className="mx-auto h-auto max-w-full object-contain" />
-                      <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.m2.name}</figcaption>
+                      <img
+                        src={stickerFiles.m2.url}
+                        alt={stickerFiles.m2.name}
+                        className="mx-auto h-auto max-w-full object-contain"
+                      />
+                      <figcaption className="mt-2 text-center text-xs break-all">
+                        {stickerFiles.m2.name}
+                      </figcaption>
                       <div className="mt-2 flex justify-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m2!.name, stickerFiles.m2!.url)}>Print</Button>
-                        <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m2!.name, stickerFiles.m2!.url)}>Download</Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            printStickerBlob(
+                              stickerFiles.m2!.name,
+                              stickerFiles.m2!.url,
+                            )
+                          }
+                        >
+                          Print
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            downloadStickerBlob(
+                              stickerFiles.m2!.name,
+                              stickerFiles.m2!.url,
+                            )
+                          }
+                        >
+                          Download
+                        </Button>
                       </div>
                     </figure>
                   )}
                   {stickerFiles.m3 && (
                     <figure className="border rounded p-3 bg-white shadow-sm">
-                      <img src={stickerFiles.m3.url} alt={stickerFiles.m3.name} className="mx-auto h-auto max-w-full object-contain" />
-                      <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.m3.name}</figcaption>
+                      <img
+                        src={stickerFiles.m3.url}
+                        alt={stickerFiles.m3.name}
+                        className="mx-auto h-auto max-w-full object-contain"
+                      />
+                      <figcaption className="mt-2 text-center text-xs break-all">
+                        {stickerFiles.m3.name}
+                      </figcaption>
                       <div className="mt-2 flex justify-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m3!.name, stickerFiles.m3!.url)}>Print</Button>
-                        <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m3!.name, stickerFiles.m3!.url)}>Download</Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            printStickerBlob(
+                              stickerFiles.m3!.name,
+                              stickerFiles.m3!.url,
+                            )
+                          }
+                        >
+                          Print
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            downloadStickerBlob(
+                              stickerFiles.m3!.name,
+                              stickerFiles.m3!.url,
+                            )
+                          }
+                        >
+                          Download
+                        </Button>
                       </div>
                     </figure>
                   )}
                   {stickerFiles.master && (
                     <figure className="border rounded p-3 bg-white shadow-sm">
-                      <img src={stickerFiles.master.url} alt={stickerFiles.master.name} className="mx-auto h-auto max-w-full object-contain" />
-                      <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.master.name}</figcaption>
+                      <img
+                        src={stickerFiles.master.url}
+                        alt={stickerFiles.master.name}
+                        className="mx-auto h-auto max-w-full object-contain"
+                      />
+                      <figcaption className="mt-2 text-center text-xs break-all">
+                        {stickerFiles.master.name}
+                      </figcaption>
                       <div className="mt-2 flex justify-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.master!.name, stickerFiles.master!.url)}>Print</Button>
-                        <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.master!.name, stickerFiles.master!.url)}>Download</Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            printStickerBlob(
+                              stickerFiles.master!.name,
+                              stickerFiles.master!.url,
+                            )
+                          }
+                        >
+                          Print
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            downloadStickerBlob(
+                              stickerFiles.master!.name,
+                              stickerFiles.master!.url,
+                            )
+                          }
+                        >
+                          Download
+                        </Button>
                       </div>
                     </figure>
                   )}

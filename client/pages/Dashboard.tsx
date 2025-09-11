@@ -251,13 +251,17 @@ function DashboardInner() {
           const m1Set = new Set<string>();
           const m2Set = new Set<string>();
           const m3Set = new Set<string>();
-          const mm1 = m1Arr, mm2 = m2Arr, mm3 = m3Arr;
+          const mm1 = m1Arr,
+            mm2 = m2Arr,
+            mm3 = m3Arr;
           for (const c of j.conflicts) {
             if (mm1.includes(c.cell)) m1Set.add(c.cell);
             if (mm2.includes(c.cell)) m2Set.add(c.cell);
             if (mm3.includes(c.cell)) m3Set.add(c.cell);
           }
-          setDupM1(m1Set); setDupM2(m2Set); setDupM3(m3Set);
+          setDupM1(m1Set);
+          setDupM2(m2Set);
+          setDupM3(m3Set);
           setErrorInfo(`Duplicate cells found:\n${lines}`);
           toast.error("Duplicate cells found. See details below.", {
             duration: 5000,
@@ -294,7 +298,13 @@ function DashboardInner() {
         packs: { ...prev.packs, [data.pack.pack_serial]: data.pack },
       }));
       toast.success("Generated pack and codes");
-      await generateStickerPreviews({ includeModules: true, includeMaster: true, packSerial: data.pack.pack_serial, createdAtISO: data.pack.created_at, moduleIds: Object.keys(data.pack.modules || {}) });
+      await generateStickerPreviews({
+        includeModules: true,
+        includeMaster: true,
+        packSerial: data.pack.pack_serial,
+        createdAtISO: data.pack.created_at,
+        moduleIds: Object.keys(data.pack.modules || {}),
+      });
       await advanceToNextSerial();
     } catch (e: any) {
       toast.error(e?.message || "Error generating pack");
@@ -377,7 +387,13 @@ function DashboardInner() {
       const j = await res.json();
       if (!j.ok) throw new Error(j.error || "Failed");
       setLastFiles((lf) => ({ ...lf, master: j.master }));
-      await generateStickerPreviews({ includeModules: false, includeMaster: true, packSerial: j.pack.pack_serial, createdAtISO: j.pack.created_at, moduleIds: Object.keys(j.pack.modules || {}) });
+      await generateStickerPreviews({
+        includeModules: false,
+        includeMaster: true,
+        packSerial: j.pack.pack_serial,
+        createdAtISO: j.pack.created_at,
+        moduleIds: Object.keys(j.pack.modules || {}),
+      });
       toast.success("Generated master code");
       await advanceToNextSerial();
     } catch (e: any) {
@@ -440,13 +456,17 @@ function DashboardInner() {
           const m1Set = new Set<string>();
           const m2Set = new Set<string>();
           const m3Set = new Set<string>();
-          const mm1 = normLines(m1); const mm2 = normLines(m2); const mm3 = normLines(m3);
+          const mm1 = normLines(m1);
+          const mm2 = normLines(m2);
+          const mm3 = normLines(m3);
           for (const c of j.conflicts) {
             if (mm1.includes(c.cell)) m1Set.add(c.cell);
             if (mm2.includes(c.cell)) m2Set.add(c.cell);
             if (mm3.includes(c.cell)) m3Set.add(c.cell);
           }
-          setDupM1(m1Set); setDupM2(m2Set); setDupM3(m3Set);
+          setDupM1(m1Set);
+          setDupM2(m2Set);
+          setDupM3(m3Set);
           setErrorInfo(`Duplicate cells found:\n${lines}`);
           toast.error("Duplicate cells found. See details below.", {
             duration: 5000,
@@ -525,7 +545,11 @@ function DashboardInner() {
     return `${dd}-${mm}-${yyyy}`;
   }
 
-  async function renderBarcodeCanvas(text: string, width: number, height: number) {
+  async function renderBarcodeCanvas(
+    text: string,
+    width: number,
+    height: number,
+  ) {
     const c = document.createElement("canvas");
     c.width = width;
     c.height = height;
@@ -608,7 +632,11 @@ function DashboardInner() {
     ctx.fillStyle = "#000000";
     ctx.font = "bold 12px Arial, Roboto, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(`${opts.productName}-${opts.variant.toUpperCase()}`, barX + Math.floor(barW / 2), MARGIN + 126);
+    ctx.fillText(
+      `${opts.productName}-${opts.variant.toUpperCase()}`,
+      barX + Math.floor(barW / 2),
+      MARGIN + 126,
+    );
 
     if (opts.moduleLabel) {
       ctx.font = "bold 36px Arial, Roboto, sans-serif";
@@ -616,10 +644,18 @@ function DashboardInner() {
       ctx.fillText(opts.moduleLabel, MARGIN + 0, MARGIN + 160);
     }
 
-    return await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
+    return await new Promise<Blob>((resolve) =>
+      canvas.toBlob((b) => resolve(b!), "image/png"),
+    );
   }
 
-  async function generateStickerPreviews(opts: { includeModules: boolean; includeMaster: boolean; packSerial?: string; createdAtISO?: string; moduleIds?: string[] }) {
+  async function generateStickerPreviews(opts: {
+    includeModules: boolean;
+    includeMaster: boolean;
+    packSerial?: string;
+    createdAtISO?: string;
+    moduleIds?: string[];
+  }) {
     const pack = (opts.packSerial ?? packSerial).trim();
     if (!pack) {
       toast.error("Enter pack serial");
@@ -694,7 +730,8 @@ function DashboardInner() {
     }
 
     setStickerFiles((prev) => {
-      if (prev.master?.url && nextFiles.master) URL.revokeObjectURL(prev.master.url);
+      if (prev.master?.url && nextFiles.master)
+        URL.revokeObjectURL(prev.master.url);
       if (prev.m1?.url && nextFiles.m1) URL.revokeObjectURL(prev.m1.url);
       if (prev.m2?.url && nextFiles.m2) URL.revokeObjectURL(prev.m2.url);
       if (prev.m3?.url && nextFiles.m3) URL.revokeObjectURL(prev.m3.url);
@@ -725,7 +762,10 @@ function DashboardInner() {
       let res = await fetch(`/api/packs/modules-only`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pack_serial: packSerial.trim(), code_type: "barcode" }),
+        body: JSON.stringify({
+          pack_serial: packSerial.trim(),
+          code_type: "barcode",
+        }),
       });
       if (res.status === 404) {
         const saved = await fetch("/api/packs/save-only", {
@@ -746,7 +786,10 @@ function DashboardInner() {
         res = await fetch(`/api/packs/modules-only`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pack_serial: packSerial.trim(), code_type: "barcode" }),
+          body: JSON.stringify({
+            pack_serial: packSerial.trim(),
+            code_type: "barcode",
+          }),
         });
       }
       if (res.status === 409) {
@@ -756,7 +799,13 @@ function DashboardInner() {
       const j = await res.json();
       if (!j.ok) throw new Error(j.error || "Failed");
       setLastFiles((lf) => ({ ...lf, modules: j.modules }));
-      await generateStickerPreviews({ includeModules: true, includeMaster: false, packSerial: j.pack.pack_serial, createdAtISO: j.pack.created_at, moduleIds: Object.keys(j.pack.modules || {}) });
+      await generateStickerPreviews({
+        includeModules: true,
+        includeMaster: false,
+        packSerial: j.pack.pack_serial,
+        createdAtISO: j.pack.created_at,
+        moduleIds: Object.keys(j.pack.modules || {}),
+      });
       toast.success("Generated module codes");
       await advanceToNextSerial();
     } catch (e: any) {
@@ -773,12 +822,21 @@ function DashboardInner() {
       const res = await fetch(`/api/packs/regenerate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pack_serial: packSerial.trim(), code_type: "barcode" }),
+        body: JSON.stringify({
+          pack_serial: packSerial.trim(),
+          code_type: "barcode",
+        }),
       });
       const j = await res.json();
       if (!j.ok) throw new Error(j.error || "Failed");
       setLastFiles({ modules: j.files.modules, master: j.files.master });
-      await generateStickerPreviews({ includeModules: true, includeMaster: true, packSerial: j.pack.pack_serial, createdAtISO: j.pack.created_at, moduleIds: Object.keys(j.pack.modules || {}) });
+      await generateStickerPreviews({
+        includeModules: true,
+        includeMaster: true,
+        packSerial: j.pack.pack_serial,
+        createdAtISO: j.pack.created_at,
+        moduleIds: Object.keys(j.pack.modules || {}),
+      });
       toast.success("Regenerated codes");
     } catch (e: any) {
       toast.error(e?.message || "Error regenerating");
@@ -799,15 +857,28 @@ function DashboardInner() {
     </style></head><body>
       <div class='wrap'><img id='img' alt='${name}'/></div>
     </body></html>`;
-    w.document.open(); w.document.write(html); w.document.close();
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
     // Inject script to set src and wait for load
     const setAndPrint = () => {
-      const img = w.document.getElementById('img') as HTMLImageElement | null;
+      const img = w.document.getElementById("img") as HTMLImageElement | null;
       if (!img) return;
-      const doPrint = () => setTimeout(() => { try { w.focus(); w.print(); } catch {} }, 100);
+      const doPrint = () =>
+        setTimeout(() => {
+          try {
+            w.focus();
+            w.print();
+          } catch {}
+        }, 100);
       if ((img as any).decode) {
         img.src = url;
-        (img as any).decode().then(doPrint).catch(() => { img.onload = doPrint; });
+        (img as any)
+          .decode()
+          .then(doPrint)
+          .catch(() => {
+            img.onload = doPrint;
+          });
       } else {
         img.onload = doPrint;
         img.src = url;
@@ -817,7 +888,9 @@ function DashboardInner() {
           const r = await fetch(url);
           const b = await r.blob();
           const rd = new FileReader();
-          rd.onload = () => { img.src = String(rd.result || ''); };
+          rd.onload = () => {
+            img.src = String(rd.result || "");
+          };
           rd.readAsDataURL(b);
         } catch {}
       };
@@ -826,7 +899,9 @@ function DashboardInner() {
   }
 
   function downloadStickerBlob(name: string, url: string) {
-    fetch(url).then(r=>r.blob()).then(b=>saveAs(b, name));
+    fetch(url)
+      .then((r) => r.blob())
+      .then((b) => saveAs(b, name));
   }
 
   function downloadImage(url: string) {
@@ -1041,7 +1116,10 @@ function DashboardInner() {
             if (doc && doc.codes) {
               for (let i = 0; i < Math.min(needCount, moduleIds.length); i++) {
                 const mid = moduleIds[i];
-                if (doc.codes[mid]) { hasModuleCodes = true; break; }
+                if (doc.codes[mid]) {
+                  hasModuleCodes = true;
+                  break;
+                }
               }
             }
             const hasMaster = !!(doc && doc.codes && doc.codes.master);
@@ -1050,7 +1128,10 @@ function DashboardInner() {
             const disableMasterOnly = hasMaster;
             return (
               <>
-                <Button onClick={handleGenerate} disabled={loading || disableCombined}>
+                <Button
+                  onClick={handleGenerate}
+                  disabled={loading || disableCombined}
+                >
                   Generate Modules + Master
                 </Button>
                 <Button
@@ -1060,13 +1141,25 @@ function DashboardInner() {
                 >
                   Generate Master Only
                 </Button>
-                <Button variant="outline" onClick={handleModulesOnly} disabled={loading || disableModulesOnly}>
+                <Button
+                  variant="outline"
+                  onClick={handleModulesOnly}
+                  disabled={loading || disableModulesOnly}
+                >
                   Modules Only
                 </Button>
-                <Button variant="outline" onClick={handleSaveOnly} disabled={loading}>
+                <Button
+                  variant="outline"
+                  onClick={handleSaveOnly}
+                  disabled={loading}
+                >
                   Save Without Codes
                 </Button>
-                <Button variant="destructive" onClick={handleRegenerateAll} disabled={loading}>
+                <Button
+                  variant="destructive"
+                  onClick={handleRegenerateAll}
+                  disabled={loading}
+                >
                   Regenerate (All)
                 </Button>
                 <Button variant="outline" onClick={clearAll}>
@@ -1080,45 +1173,160 @@ function DashboardInner() {
           </div>
         </section>
 
-        {(stickerFiles.m1 || stickerFiles.m2 || stickerFiles.m3 || stickerFiles.master) && (
+        {(stickerFiles.m1 ||
+          stickerFiles.m2 ||
+          stickerFiles.m3 ||
+          stickerFiles.master) && (
           <section className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-6">
             {stickerFiles.m1 && (
               <figure className="border rounded p-3 bg-white shadow-sm">
-                <img src={stickerFiles.m1.url} alt={stickerFiles.m1.name} className="mx-auto h-auto max-w-full object-contain" />
-                <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.m1.name}</figcaption>
+                <img
+                  src={stickerFiles.m1.url}
+                  alt={stickerFiles.m1.name}
+                  className="mx-auto h-auto max-w-full object-contain"
+                />
+                <figcaption className="mt-2 text-center text-xs break-all">
+                  {stickerFiles.m1.name}
+                </figcaption>
                 <div className="mt-2 flex justify-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m1!.name, stickerFiles.m1!.url)}>Print</Button>
-                  <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m1!.name, stickerFiles.m1!.url)}>Download</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      printStickerBlob(
+                        stickerFiles.m1!.name,
+                        stickerFiles.m1!.url,
+                      )
+                    }
+                  >
+                    Print
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      downloadStickerBlob(
+                        stickerFiles.m1!.name,
+                        stickerFiles.m1!.url,
+                      )
+                    }
+                  >
+                    Download
+                  </Button>
                 </div>
               </figure>
             )}
             {stickerFiles.m2 && (
               <figure className="border rounded p-3 bg-white shadow-sm">
-                <img src={stickerFiles.m2.url} alt={stickerFiles.m2.name} className="mx-auto h-auto max-w-full object-contain" />
-                <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.m2.name}</figcaption>
+                <img
+                  src={stickerFiles.m2.url}
+                  alt={stickerFiles.m2.name}
+                  className="mx-auto h-auto max-w-full object-contain"
+                />
+                <figcaption className="mt-2 text-center text-xs break-all">
+                  {stickerFiles.m2.name}
+                </figcaption>
                 <div className="mt-2 flex justify-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m2!.name, stickerFiles.m2!.url)}>Print</Button>
-                  <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m2!.name, stickerFiles.m2!.url)}>Download</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      printStickerBlob(
+                        stickerFiles.m2!.name,
+                        stickerFiles.m2!.url,
+                      )
+                    }
+                  >
+                    Print
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      downloadStickerBlob(
+                        stickerFiles.m2!.name,
+                        stickerFiles.m2!.url,
+                      )
+                    }
+                  >
+                    Download
+                  </Button>
                 </div>
               </figure>
             )}
             {stickerFiles.m3 && (
               <figure className="border rounded p-3 bg-white shadow-sm">
-                <img src={stickerFiles.m3.url} alt={stickerFiles.m3.name} className="mx-auto h-auto max-w-full object-contain" />
-                <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.m3.name}</figcaption>
+                <img
+                  src={stickerFiles.m3.url}
+                  alt={stickerFiles.m3.name}
+                  className="mx-auto h-auto max-w-full object-contain"
+                />
+                <figcaption className="mt-2 text-center text-xs break-all">
+                  {stickerFiles.m3.name}
+                </figcaption>
                 <div className="mt-2 flex justify-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m3!.name, stickerFiles.m3!.url)}>Print</Button>
-                  <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m3!.name, stickerFiles.m3!.url)}>Download</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      printStickerBlob(
+                        stickerFiles.m3!.name,
+                        stickerFiles.m3!.url,
+                      )
+                    }
+                  >
+                    Print
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      downloadStickerBlob(
+                        stickerFiles.m3!.name,
+                        stickerFiles.m3!.url,
+                      )
+                    }
+                  >
+                    Download
+                  </Button>
                 </div>
               </figure>
             )}
             {stickerFiles.master && (
               <figure className="border rounded p-3 bg-white shadow-sm">
-                <img src={stickerFiles.master.url} alt={stickerFiles.master.name} className="mx-auto h-auto max-w-full object-contain" />
-                <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.master.name}</figcaption>
+                <img
+                  src={stickerFiles.master.url}
+                  alt={stickerFiles.master.name}
+                  className="mx-auto h-auto max-w-full object-contain"
+                />
+                <figcaption className="mt-2 text-center text-xs break-all">
+                  {stickerFiles.master.name}
+                </figcaption>
                 <div className="mt-2 flex justify-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.master!.name, stickerFiles.master!.url)}>Print</Button>
-                  <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.master!.name, stickerFiles.master!.url)}>Download</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      printStickerBlob(
+                        stickerFiles.master!.name,
+                        stickerFiles.master!.url,
+                      )
+                    }
+                  >
+                    Print
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      downloadStickerBlob(
+                        stickerFiles.master!.name,
+                        stickerFiles.master!.url,
+                      )
+                    }
+                  >
+                    Download
+                  </Button>
                 </div>
               </figure>
             )}
