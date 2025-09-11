@@ -318,6 +318,7 @@ function DashboardInner() {
       const j = await res.json();
       if (!j.ok) throw new Error(j.error || "Failed");
       setLastFiles((lf) => ({ ...lf, master: j.master }));
+      await generateStickerPreviews({ includeModules: false, includeMaster: true });
       toast.success("Generated master code");
     } catch (e: any) {
       toast.error(e?.message || "Error generating master code");
