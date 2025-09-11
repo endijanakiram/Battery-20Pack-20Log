@@ -103,6 +103,7 @@ function DashboardInner() {
     master?: { url: string; name: string };
     m1?: { url: string; name: string };
     m2?: { url: string; name: string };
+    m3?: { url: string; name: string };
   }>({});
 
   useEffect(() => {
