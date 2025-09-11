@@ -53,11 +53,11 @@ async function generateBarcodePng(
   return await bwipjs.toBuffer({
     bcid: "code128",
     text: payload,
-    scale: 3,
+    scale: 2,
     includetext: true,
     textxalign: "center",
     alttext: humanText,
-    textsize: 18,
+    textsize: 14,
     backgroundcolor: "FFFFFF",
     paddingwidth: margin,
     paddingheight: margin,
