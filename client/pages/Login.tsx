@@ -79,18 +79,26 @@ export default function Login() {
           </div>
           <div className="mt-3">
             <label className="text-sm font-medium">Password</label>
-            <Input
-              className="mt-1"
-              type="password"
-              value={pass}
-              onChange={(e) => setPass(e.target.value)}
-              // Reduce password manager prompts
-              autoComplete="off"
-              name="passcode"
-              data-lpignore="true"
-              data-1p-ignore="true"
-              enterKeyHint="go"
-            />
+            <div className="mt-1 relative">
+              <Input
+                className="pr-16"
+                type={show ? "text" : "password"}
+                value={pass}
+                onChange={(e) => setPass(e.target.value)}
+                autoComplete="off"
+                name="passcode"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                enterKeyHint="go"
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-1 my-auto rounded px-2 text-xs text-emerald-700 hover:bg-emerald-50"
+                onClick={() => setShow((s) => !s)}
+              >
+                {show ? "Hide" : "Show"}
+              </button>
+            </div>
           </div>
           <Button type="submit" className="mt-5 w-full">
             Sign in
