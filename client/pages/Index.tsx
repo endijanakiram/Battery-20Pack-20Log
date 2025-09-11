@@ -740,20 +740,15 @@ export default function Index() {
                     </div>
                   )}
                   <div className="mt-2 flex justify-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => printImage(lastFiles.master!)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => printImage(lastFiles.master!)}>
                       Print
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => downloadImage(lastFiles.master!)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => downloadImage(lastFiles.master!)}>
                       Download
                     </Button>
+                    {codeType === "sticker" && lastSticker?.master && (
+                      <Button size="sm" onClick={() => printSticker(undefined)}>Print Sticker</Button>
+                    )}
                   </div>
                 </figure>
               )}
