@@ -27,7 +27,7 @@ interface Config {
   modulesEnabled: ModulesEnabled;
 }
 
-type CodeType = "barcode" | "qr";
+type CodeType = "barcode" | "qr" | "sticker";
 
 type GenerateResponse = {
   ok: boolean;
