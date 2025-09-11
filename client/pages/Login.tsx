@@ -7,6 +7,7 @@ export default function Login() {
   const [mode, setMode] = useState<"operator" | "admin">("operator");
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
+  const [show, setShow] = useState(false);
   const nav = useNavigate();
 
   function handleLogin(e?: React.FormEvent) {
