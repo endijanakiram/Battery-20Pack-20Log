@@ -138,101 +138,117 @@ function DashboardInner() {
   }
 
   async function handleGenerate() {
-  const toArray = (input?: string | string[] | null): string[] => {
-    if (!input) return [];
-    if (Array.isArray(input)) return input.map((s) => String(s).trim()).filter(Boolean);
-    return String(input)
-      .split(/\r?\n/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-  };
-
-  const m1Arr = toArray(m1);
-  const m2Arr = modulesEnabled.m2 ? toArray(m2) : [];
-  const m3Arr = modulesEnabled.m3 ? toArray(m3) : [];
-
-  const need2 = modulesEnabled.m1 && modulesEnabled.m2 && !modulesEnabled.m3;
-  const need3 = modulesEnabled.m1 && modulesEnabled.m2 && modulesEnabled.m3;
-
-  if (
-    m1Arr.length === 0 ||
-    (need2 && m2Arr.length === 0) ||
-    (need3 && (m2Arr.length === 0 || m3Arr.length === 0))
-  ) {
-    toast.error("Paste required module cell lists per config");
-    return;
-  }
-
-  setErrorInfo("");
-  setLoading(true);
-
-  const buildPayload = (overwriteFlag?: boolean) => {
-    const payload: any = {
-      pack_serial: packSerial.trim(),
-      code_type: codeType,
-      module1_cells: m1Arr,
+    const toArray = (input?: string | string[] | null): string[] => {
+      if (!input) return [];
+      if (Array.isArray(input))
+        return input.map((s) => String(s).trim()).filter(Boolean);
+      return String(input)
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean);
     };
-    if (modulesEnabled.m2) payload.module2_cells = m2Arr;
-    if (modulesEnabled.m3) payload.module3_cells = m3Arr;
-    if (operator && String(operator).trim() !== "") payload.operator = operator;
-    if (overwriteFlag) payload.overwrite = true;
-    return payload;
-  };
 
-  try {
-    let res = await fetch("/api/packs/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(buildPayload()),
-    });
+    const m1Arr = toArray(m1);
+    const m2Arr = modulesEnabled.m2 ? toArray(m2) : [];
+    const m3Arr = modulesEnabled.m3 ? toArray(m3) : [];
 
-    if (res.status === 409) {
-      const j = await res.json();
-      if (j.exists) {
-        const confirmOverwrite = window.confirm("Pack exists. Overwrite? This will replace existing data.");
-        if (!confirmOverwrite) {
-          setSerialExists(true);
+    const need2 = modulesEnabled.m1 && modulesEnabled.m2 && !modulesEnabled.m3;
+    const need3 = modulesEnabled.m1 && modulesEnabled.m2 && modulesEnabled.m3;
+
+    if (
+      m1Arr.length === 0 ||
+      (need2 && m2Arr.length === 0) ||
+      (need3 && (m2Arr.length === 0 || m3Arr.length === 0))
+    ) {
+      toast.error("Paste required module cell lists per config");
+      return;
+    }
+
+    setErrorInfo("");
+    setLoading(true);
+
+    const buildPayload = (overwriteFlag?: boolean) => {
+      const payload: any = {
+        pack_serial: packSerial.trim(),
+        code_type: codeType,
+        module1_cells: m1Arr,
+      };
+      if (modulesEnabled.m2) payload.module2_cells = m2Arr;
+      if (modulesEnabled.m3) payload.module3_cells = m3Arr;
+      if (operator && String(operator).trim() !== "")
+        payload.operator = operator;
+      if (overwriteFlag) payload.overwrite = true;
+      return payload;
+    };
+
+    try {
+      let res = await fetch("/api/packs/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildPayload()),
+      });
+
+      if (res.status === 409) {
+        const j = await res.json();
+        if (j.exists) {
+          const confirmOverwrite = window.confirm(
+            "Pack exists. Overwrite? This will replace existing data.",
+          );
+          if (!confirmOverwrite) {
+            setSerialExists(true);
+            setLoading(false);
+            return;
+          }
+          setSerialExists(false);
+          res = await fetch("/api/packs/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(buildPayload(true)),
+          });
+        } else if (j.conflicts?.length) {
+          const lines = j.conflicts
+            .map((c: any) => `${c.cell} in ${c.pack} / ${c.module}`)
+            .join("\n");
+          setErrorInfo(`Duplicate cells found:\n${lines}`);
+          toast.error("Duplicate cells found. See details below.", {
+            duration: 5000,
+          });
+          setLoading(false);
+          return;
+        } else if (
+          j.module1_duplicates?.length ||
+          j.module2_duplicates?.length ||
+          j.module3_duplicates?.length
+        ) {
+          const msg = `Duplicate cells in module1: ${j.module1_duplicates?.join(", ") || "-"}\nDuplicate cells in module2: ${j.module2_duplicates?.join(", ") || "-"}\nDuplicate cells in module3: ${j.module3_duplicates?.join(", ") || "-"}`;
+          setErrorInfo(msg);
+          toast.error("Duplicate cells within module. See details below.", {
+            duration: 5000,
+          });
+          setLoading(false);
+          return;
+        } else {
+          toast.error(j.error || "Conflict error");
           setLoading(false);
           return;
         }
-        setSerialExists(false);
-        res = await fetch("/api/packs/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(buildPayload(true)),
-        });
-      } else if (j.conflicts?.length) {
-        const lines = j.conflicts.map((c: any) => `${c.cell} in ${c.pack} / ${c.module}`).join("\n");
-        setErrorInfo(`Duplicate cells found:\n${lines}`);
-        toast.error("Duplicate cells found. See details below.", { duration: 5000 });
-        setLoading(false);
-        return;
-      } else if (j.module1_duplicates?.length || j.module2_duplicates?.length || j.module3_duplicates?.length) {
-        const msg = `Duplicate cells in module1: ${j.module1_duplicates?.join(", ") || "-"}\nDuplicate cells in module2: ${j.module2_duplicates?.join(", ") || "-"}\nDuplicate cells in module3: ${j.module3_duplicates?.join(", ") || "-"}`;
-        setErrorInfo(msg);
-        toast.error("Duplicate cells within module. See details below.", { duration: 5000 });
-        setLoading(false);
-        return;
-      } else {
-        toast.error(j.error || "Conflict error");
-        setLoading(false);
-        return;
       }
-    }
 
-    const data = (await res.json()) as GenerateResponse;
-    if (!data.ok) throw new Error("Failed");
-    setLastFiles({ modules: data.files.modules, master: data.files.master });
-    setPackSerial(data.pack.pack_serial);
-    setDb((prev) => ({ packs: { ...prev.packs, [data.pack.pack_serial]: data.pack } }));
-    toast.success("Generated 3 code PNGs");
-    fetchNext();
-  } catch (e: any) {
-    toast.error(e?.message || "Error generating pack");
-  } finally {
-    setLoading(false);
+      const data = (await res.json()) as GenerateResponse;
+      if (!data.ok) throw new Error("Failed");
+      setLastFiles({ modules: data.files.modules, master: data.files.master });
+      setPackSerial(data.pack.pack_serial);
+      setDb((prev) => ({
+        packs: { ...prev.packs, [data.pack.pack_serial]: data.pack },
+      }));
+      toast.success("Generated 3 code PNGs");
+      fetchNext();
+    } catch (e: any) {
+      toast.error(e?.message || "Error generating pack");
+    } finally {
+      setLoading(false);
+    }
   }
-}
 
   async function handleRegenerate(type: CodeType) {
     if (!packSerial.trim()) return toast.error("Enter pack serial");

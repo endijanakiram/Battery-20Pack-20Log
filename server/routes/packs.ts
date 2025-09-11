@@ -82,16 +82,16 @@ export const generatePack: RequestHandler = async (req, res) => {
 
   function pickCells(key: string): string | string[] | null {
     if (body[key] != null) return body[key];
-    if (body.modules && (body.modules[key] != null)) return body.modules[key];
-    const short = key.replace(/module(\d)_cells/, 'm$1');
+    if (body.modules && body.modules[key] != null) return body.modules[key];
+    const short = key.replace(/module(\d)_cells/, "m$1");
     if (body[short] != null) return body[short];
-    if (body.modules && (body.modules[short] != null)) return body.modules[short];
+    if (body.modules && body.modules[short] != null) return body.modules[short];
     return null;
   }
 
-  const module1_cells = pickCells('module1_cells');
-  const module2_cells = pickCells('module2_cells');
-  const module3_cells = pickCells('module3_cells');
+  const module1_cells = pickCells("module1_cells");
+  const module2_cells = pickCells("module2_cells");
+  const module3_cells = pickCells("module3_cells");
 
   const db = readDB();
   const finalPackSerial =
@@ -320,15 +320,16 @@ export const savePackOnly: RequestHandler = (req, res) => {
   const overwrite = !!body2.overwrite;
   function pickCells2(key: string): string | string[] | null {
     if (body2[key] != null) return body2[key];
-    if (body2.modules && (body2.modules[key] != null)) return body2.modules[key];
-    const short = key.replace(/module(\d)_cells/, 'm$1');
+    if (body2.modules && body2.modules[key] != null) return body2.modules[key];
+    const short = key.replace(/module(\d)_cells/, "m$1");
     if (body2[short] != null) return body2[short];
-    if (body2.modules && (body2.modules[short] != null)) return body2.modules[short];
+    if (body2.modules && body2.modules[short] != null)
+      return body2.modules[short];
     return null;
   }
-  const module1_cells = pickCells2('module1_cells');
-  const module2_cells = pickCells2('module2_cells');
-  const module3_cells = pickCells2('module3_cells');
+  const module1_cells = pickCells2("module1_cells");
+  const module2_cells = pickCells2("module2_cells");
+  const module3_cells = pickCells2("module3_cells");
 
   const db = readDB();
   const finalPackSerial =
