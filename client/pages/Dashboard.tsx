@@ -113,6 +113,9 @@ function DashboardInner() {
         const j = (await r.json()) as Config;
         const fallback = { m1: true, m2: true, m3: false };
         setModulesEnabled(j?.modulesEnabled ?? fallback);
+        if ((j as any).batch) setCfgBatch((j as any).batch);
+        if ((j as any).productName) setProductName((j as any).productName);
+        if ((j as any).variant) setVariant((j as any).variant);
       }
     } catch {}
   }
