@@ -259,10 +259,12 @@ export const getConfig: RequestHandler = (_req, res) => {
 };
 
 export const updateConfig: RequestHandler = (req, res) => {
-  const { model, batch, modulesEnabled } = req.body as {
+  const { model, batch, modulesEnabled, productName, variant } = req.body as {
     model?: "LFP6" | "LFP9";
     batch?: string;
     modulesEnabled?: { m1?: boolean; m2?: boolean; m3?: boolean };
+    productName?: string;
+    variant?: "Classic" | "Pro" | "Max";
   };
   if (batch && !/^\d{1,3}$/.test(batch))
     return res.status(400).json({ error: "batch must be 1-3 digits" });
