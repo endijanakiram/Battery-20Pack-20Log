@@ -38,6 +38,9 @@ export interface BatteryDB {
 export function ensureDataDirs() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   if (!fs.existsSync(CODES_DIR)) fs.mkdirSync(CODES_DIR, { recursive: true });
+  // If Supabase is configured, ensure storage buckets
+  ensureBucket("codes", true).catch(() => {});
+  ensureBucket(DB_BUCKET, false).catch(() => {});
 }
 
 export function readDB(): BatteryDB {
@@ -49,6 +52,73 @@ export function readDB(): BatteryDB {
     productName: "NX100",
     variant: "Pro",
   };
+
+  const s = getSupabase();
+  if (s) {
+    return (function supabaseRead(): BatteryDB {
+      // Synchronous facade: we can't block here, so use deopt with sync/await via deasync not available.
+      // Instead, read from local cache if exists; else create remote default and return default for now.
+      // To keep consistency, try to fetch using async promise with then/catch but return fallback immediately.
+      // For our environment, most routes are async and will call writeDB before relying on contents.
+      try {
+        // Attempt to read synchronously from a cached copy; if missing, trigger async fetch to refresh cache.
+        if (fs.existsSync(DB_PATH)) {
+          const rawCache = fs.readFileSync(DB_PATH, "utf8");
+          const parsed = JSON.parse(rawCache) as BatteryDB;
+          // Fire-and-forget remote refresh
+          s.storage
+            .from(DB_BUCKET)
+            .download(DB_OBJECT)
+            .then(async (resp) => {
+              if (resp.data) {
+                const buf = await resp.data.arrayBuffer();
+                const txt = Buffer.from(buf).toString("utf8");
+                fs.writeFileSync(DB_PATH, txt);
+              } else {
+                const empty: BatteryDB = { packs: {}, config: defaultCfg };
+                await s.storage
+                  .from(DB_BUCKET)
+                  .upload(DB_OBJECT, JSON.stringify(empty, null, 2), {
+                    contentType: "application/json",
+                    upsert: true,
+                  });
+              }
+            })
+            .catch(() => {});
+          return parsed;
+        } else {
+          // No cache: try remote download synchronously-ish by blocking with Atomics not possible; fallback to default and kick off init
+          s.storage
+            .from(DB_BUCKET)
+            .download(DB_OBJECT)
+            .then(async (resp) => {
+              if (resp.data) {
+                const buf = await resp.data.arrayBuffer();
+                const txt = Buffer.from(buf).toString("utf8");
+                fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+                fs.writeFileSync(DB_PATH, txt);
+              } else {
+                const empty: BatteryDB = { packs: {}, config: defaultCfg };
+                await s.storage
+                  .from(DB_BUCKET)
+                  .upload(DB_OBJECT, JSON.stringify(empty, null, 2), {
+                    contentType: "application/json",
+                    upsert: true,
+                  });
+                fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+                fs.writeFileSync(DB_PATH, JSON.stringify(empty, null, 2));
+              }
+            })
+            .catch(() => {});
+          return { packs: {}, config: defaultCfg };
+        }
+      } catch {
+        return { packs: {}, config: defaultCfg };
+      }
+    })();
+  }
+
+  // Filesystem fallback
   if (!fs.existsSync(DB_PATH)) {
     const empty: BatteryDB = { packs: {}, config: defaultCfg };
     fs.writeFileSync(DB_PATH, JSON.stringify(empty, null, 2));
@@ -76,7 +146,15 @@ export function readDB(): BatteryDB {
 
 export function writeDB(db: BatteryDB) {
   ensureDataDirs();
-  fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+  const payload = JSON.stringify(db, null, 2);
+  fs.writeFileSync(DB_PATH, payload);
+  const s = getSupabase();
+  if (s) {
+    s.storage
+      .from(DB_BUCKET)
+      .upload(DB_OBJECT, payload, { contentType: "application/json", upsert: true })
+      .catch(() => {});
+  }
 }
 
 export function readConfig() {
