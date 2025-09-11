@@ -270,12 +270,29 @@ export const updateConfig: RequestHandler = (req, res) => {
     return res.status(400).json({ error: "batch must be 1-3 digits" });
   if (model && model !== "LFP6" && model !== "LFP9")
     return res.status(400).json({ error: "model must be LFP6 or LFP9" });
+
+  // Read current to derive variant dynamically from modulesEnabled
+  const current = readConfig();
+  const nextEnabled = modulesEnabled
+    ? {
+        m1: !!modulesEnabled.m1,
+        m2: !!modulesEnabled.m2,
+        m3: !!modulesEnabled.m3,
+      }
+    : current.modulesEnabled;
+  const autoVariant: "Classic" | "Pro" | "Max" = nextEnabled.m3
+    ? "Max"
+    : nextEnabled.m2
+    ? "Pro"
+    : "Classic";
+
   const cfg = writeConfig({
     model,
     batch: batch ? batch.padStart(3, "0") : undefined,
     modulesEnabled: modulesEnabled as any,
     productName,
-    variant,
+    // Always keep variant in sync with modulesEnabled unless explicitly overridden
+    variant: variant ?? autoVariant,
   });
   res.json(cfg);
 };
