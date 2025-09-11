@@ -11,7 +11,7 @@ const STICKER_W_PX = 394; // 50 mm width
 const STICKER_H_PX = 197; // 25 mm height
 const QR_SIDE_PX = 157; // 20 mm square ≈ 157 px @ 203 dpi
 const BARCODE_W_PX = 315; // 40 mm wide
-const BARCODE_H_PX = 118; // 15 mm tall
+const BARCODE_H_PX = 71; // 9 mm tall (40% less)
 
 function outputPath(filename: string) {
   return path.join(CODES_DIR, filename);
