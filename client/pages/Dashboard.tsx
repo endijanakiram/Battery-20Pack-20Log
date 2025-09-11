@@ -90,6 +90,9 @@ function DashboardInner() {
   }>({});
   const [nextSerial, setNextSerial] = useState<string>("");
   const [errorInfo, setErrorInfo] = useState<string>("");
+  const [dupM1, setDupM1] = useState<Set<string>>(new Set());
+  const [dupM2, setDupM2] = useState<Set<string>>(new Set());
+  const [dupM3, setDupM3] = useState<Set<string>>(new Set());
   const [modulesEnabled, setModulesEnabled] = useState<ModulesEnabled>({
     m1: true,
     m2: true,
