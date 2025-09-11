@@ -353,10 +353,31 @@ export default function Admin() {
       .wrap { width: 50mm; height: 25mm; display:flex; }
       img { width: 100%; height: 100%; object-fit: contain; }
     </style></head><body>
-      <div class='wrap'><img src='${url}'/></div>
-      <script>window.onload=()=>{window.focus();window.print();}</script>
+      <div class='wrap'><img id='img' alt='${name}'/></div>
     </body></html>`;
     w.document.open(); w.document.write(html); w.document.close();
+    const setAndPrint = () => {
+      const img = w.document.getElementById('img') as HTMLImageElement | null;
+      if (!img) return;
+      const doPrint = () => setTimeout(() => { try { w.focus(); w.print(); } catch {} }, 100);
+      if ((img as any).decode) {
+        img.src = url;
+        (img as any).decode().then(doPrint).catch(() => { img.onload = doPrint; });
+      } else {
+        img.onload = doPrint;
+        img.src = url;
+      }
+      img.onerror = async () => {
+        try {
+          const r = await fetch(url);
+          const b = await r.blob();
+          const rd = new FileReader();
+          rd.onload = () => { img.src = String(rd.result || ''); };
+          rd.readAsDataURL(b);
+        } catch {}
+      };
+    };
+    setTimeout(setAndPrint, 50);
   }
 
   function downloadStickerBlob(name: string, url: string) {
