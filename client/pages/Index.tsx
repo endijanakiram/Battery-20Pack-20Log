@@ -218,6 +218,55 @@ export default function Index() {
     }
   }
 
+  function printSticker(moduleId?: string) {
+    if (!lastSticker) return;
+    const isMaster = !moduleId;
+    const bar = isMaster ? lastSticker.master.barcode : lastSticker.modules[moduleId!].barcode;
+    const qr = isMaster ? lastSticker.master.qr : lastSticker.modules[moduleId!].qr;
+    const today = new Date().toLocaleDateString("en-GB");
+    const bottom = isMaster
+      ? `${productName}-${modulesEnabled.m1 && modulesEnabled.m2 && modulesEnabled.m3 ? "MAX" : modulesEnabled.m1 && modulesEnabled.m2 ? "PRO" : "CLASSIC"}`
+      : moduleId!;
+    const w = window.open("", "_blank");
+    if (!w) return;
+    const html = `<!DOCTYPE html><html><head><meta charset='utf-8'/><title>Sticker</title><style>
+      @page { size: auto; margin: 0; }
+      html, body { height: 100%; }
+      body { margin: 0; display:flex; align-items:center; justify-content:center; }
+      .wrap { width: 50mm; height: 25mm; box-sizing: border-box; padding: 1mm; font-family: Arial, sans-serif; }
+      .row { display:flex; justify-content: space-between; align-items: flex-start; }
+      .left { width: 28mm; }
+      .right { width: 18mm; text-align: right; }
+      .title { font-weight: 800; letter-spacing: 0.5px; }
+      .batch { font-size: 9px; }
+      .barcode { width: 40mm; height: 15mm; object-fit: contain; }
+      .qr { width: 20mm; height: 20mm; object-fit: contain; }
+      .serial { text-align:center; font-size:9px; margin-top: 1mm; }
+      .date { text-align:center; font-size:9px; margin-top: 1mm; }
+      .bottom { font-size: 10px; margin-top: 2mm; }
+    </style></head><body>
+      <div class='wrap'>
+        <div class='row'>
+          <div class='left title'>RIVOT MOTORS</div>
+          <div class='right batch'>BATCH NO: ${cfgBatch}</div>
+        </div>
+        <div class='row' style='margin-top:1mm;'>
+          <div class='left'>
+            <img class='barcode' src='${bar}'/>
+            <div class='serial'>${packSerial}</div>
+            <div class='date'>${today}</div>
+          </div>
+          <div class='right'>
+            <img class='qr' src='${qr}'/>
+          </div>
+        </div>
+        <div class='bottom'>${bottom}</div>
+      </div>
+      <script>window.onload=()=>{window.focus();window.print();}</script>
+    </body></html>`;
+    w.document.open(); w.document.write(html); w.document.close();
+  }
+
   async function handleRegenerate(type: CodeType) {
     if (!packSerial.trim()) return toast.error("Enter pack serial");
     setLoading(true);
