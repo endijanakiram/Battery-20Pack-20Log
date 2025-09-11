@@ -583,6 +583,12 @@ function DashboardInner() {
           </div>
         </section>
 
+        <section className="mt-4">
+          <Button variant="outline" onClick={generateStickers} disabled={loading}>
+            Generate Stickers (PNG ZIP)
+          </Button>
+        </section>
+
         <section
           className={`mt-6 grid grid-cols-1 ${modulesEnabled.m3 ? "md:grid-cols-3" : modulesEnabled.m2 ? "md:grid-cols-2" : "md:grid-cols-1"} gap-6`}
         >
