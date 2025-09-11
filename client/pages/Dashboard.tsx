@@ -58,7 +58,7 @@ interface Config {
   modulesEnabled: ModulesEnabled;
 }
 
-type CodeType = "barcode" | "qr";
+type CodeType = "barcode" | "qr" | "sticker";
 
 type GenerateResponse = {
   ok: boolean;
@@ -70,7 +70,7 @@ function DashboardInner() {
   const nav = useNavigate();
   const [packSerial, setPackSerial] = useState("");
   const [operator, setOperator] = useState("");
-  const [codeType, setCodeType] = useState<CodeType>("barcode");
+  const [codeType, setCodeType] = useState<CodeType>("sticker");
   const [m1, setM1] = useState("");
   const [m2, setM2] = useState("");
   const [m3, setM3] = useState("");
@@ -170,7 +170,7 @@ function DashboardInner() {
     const buildPayload = (overwriteFlag?: boolean) => {
       const payload: any = {
         pack_serial: packSerial.trim(),
-        code_type: codeType,
+        code_type: codeType === "sticker" ? "barcode" : codeType,
         module1_cells: m1Arr,
       };
       if (modulesEnabled.m2) payload.module2_cells = m2Arr;
@@ -551,7 +551,20 @@ function DashboardInner() {
               >
                 QR
               </button>
-            </div>
+          </div>
+          <div className="mt-2 flex rounded-md border p-1">
+            <button
+              className={
+                "flex-1 rounded px-3 py-2 text-sm " +
+                (codeType === "sticker"
+                  ? "bg-emerald-600 text-white"
+                  : "hover:bg-slate-50")
+              }
+              onClick={() => setCodeType("sticker")}
+            >
+              Sticker 50×25 (default)
+            </button>
+          </div>
           </div>
         </section>
 
