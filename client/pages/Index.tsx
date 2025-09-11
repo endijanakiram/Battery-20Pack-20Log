@@ -192,6 +192,19 @@ export default function Index() {
       const data = (await res.json()) as GenerateResponse;
       if (!data.ok) throw new Error("Failed");
       setLastFiles({ modules: data.files.modules, master: data.files.master });
+      if (codeType === "sticker") {
+        const [bar, qr] = await Promise.all([
+          fetch(`/api/packs/${encodeURIComponent(packSerial.trim())}/regenerate/barcode`, { method: "POST" }).then((r) => r.json()),
+          fetch(`/api/packs/${encodeURIComponent(packSerial.trim())}/regenerate/qr`, { method: "POST" }).then((r) => r.json()),
+        ]);
+        if (bar.ok && qr.ok) {
+          const modules: any = {};
+          for (const k of Object.keys(bar.files.modules)) {
+            modules[k] = { barcode: bar.files.modules[k], qr: qr.files.modules[k] };
+          }
+          setLastSticker({ modules, master: { barcode: bar.files.master, qr: qr.files.master } });
+        }
+      }
       setPackSerial(data.pack.pack_serial);
       setDb((prev) => ({
         packs: { ...prev.packs, [data.pack.pack_serial]: data.pack },
