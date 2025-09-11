@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import JsBarcode from "jsbarcode";
 import QRCode from "qrcode";
-import JSZip from "jszip";
 import { saveAs } from "file-saver";
 
 class ErrorBoundary extends Component<
