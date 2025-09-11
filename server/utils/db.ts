@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { getSupabase, ensureBucket } from "./supabase";
 
 const IS_NETLIFY = !!(
   process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME
@@ -10,6 +11,8 @@ const BASE_DIR = IS_NETLIFY
 export const DATA_DIR = BASE_DIR;
 export const CODES_DIR = path.join(DATA_DIR, "codes");
 export const DB_PATH = path.join(DATA_DIR, "battery_db.json");
+const DB_BUCKET = "db";
+const DB_OBJECT = "battery_db.json";
 
 export interface PackDoc {
   pack_serial: string;
