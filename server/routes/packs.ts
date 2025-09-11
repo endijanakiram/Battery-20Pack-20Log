@@ -74,7 +74,20 @@ function nextPackSerial(db: BatteryDB): string {
 }
 
 export const generatePack: RequestHandler = async (req, res) => {
-  const body = req.body as any;
+  let body = req.body as any;
+  try {
+    // If it's still a Buffer/string in Netlify, parse it
+    if (Buffer.isBuffer(body)) {
+      body = JSON.parse(body.toString("utf8"));
+    } else if (typeof body === "string") {
+      body = JSON.parse(body);
+    }
+
+    console.log("[generatePack] Parsed body:", body);
+  } catch (err) {
+    console.error("[generatePack] Error:", err);
+    res.status(500).json({ error: "Server error", message: err.message });
+  }
   const pack_serial = body.pack_serial as string | undefined;
   const code_type = (body.code_type || body.codeType || body.type) as CodeType;
   const operator = (body.operator ?? null) as string | null;
@@ -342,7 +355,20 @@ export const generateMasterOnly: RequestHandler = async (req, res) => {
 };
 
 export const savePackOnly: RequestHandler = (req, res) => {
-  const body2 = req.body as any;
+  let body2 = req.body as any;
+  try {
+    // If it's still a Buffer/string in Netlify, parse it
+    if (Buffer.isBuffer(body)) {
+      body2 = JSON.parse(body.toString("utf8"));
+    } else if (typeof body2 === "string") {
+      body2 = JSON.parse(body);
+    }
+
+    console.log("[generatePack] Parsed body:", body);
+  } catch (err) {
+    console.error("[generatePack] Error:", err);
+    res.status(500).json({ error: "Server error", message: err.message });
+  }
   const pack_serial = body2.pack_serial as string | undefined;
   const operator = (body2.operator ?? null) as string | null;
   const overwrite = !!body2.overwrite;
