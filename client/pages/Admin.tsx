@@ -219,7 +219,7 @@ export default function Admin() {
   }
 
   async function drawSticker(opts: {
-    moduleLabel?: "M1" | "M2" | null;
+    moduleLabel?: "M1" | "M2" | "M3" | null;
     idText: string;
     qrPayload: string;
     batch: string;
