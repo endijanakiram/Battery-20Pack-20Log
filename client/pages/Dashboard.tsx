@@ -520,7 +520,7 @@ function DashboardInner() {
     return await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
   }
 
-  async function generateStickers() {
+  async function generateStickerPreviews(opts: { includeModules: boolean; includeMaster: boolean }) {
     const pack = packSerial.trim();
     if (!pack) {
       toast.error("Enter pack serial");
@@ -531,62 +531,72 @@ function DashboardInner() {
       toast.error("Generate modules first, then retry");
       return;
     }
+
     const moduleIds = Object.keys(doc.modules || {});
-    if (moduleIds.length < 2) {
-      toast.error("At least two modules (M1, M2) required");
-      return;
+    if (opts.includeModules) {
+      if (modulesEnabled.m3) {
+        if (moduleIds.length < 3) {
+          toast.error("Three modules required by config (M1, M2, M3)");
+          return;
+        }
+      } else if (modulesEnabled.m2) {
+        if (moduleIds.length < 2) {
+          toast.error("Two modules required by config (M1, M2)");
+          return;
+        }
+      } else if (moduleIds.length < 1) {
+        toast.error("Module 1 required by config");
+        return;
+      }
     }
 
     const createdISO: string = doc.created_at;
     const dateOnly = new Date(createdISO).toISOString().slice(0, 10);
     const batch = cfgBatch;
 
-    const masterBlob = await drawSticker({
-      moduleLabel: null,
-      idText: pack,
-      qrPayload: `${pack}|${dateOnly}`,
-      batch,
-      productName,
-      variant,
-    });
-    const m1Id = moduleIds[0];
-    const m2Id = moduleIds[1];
+    const nextFiles: typeof stickerFiles = {};
 
-    const m1Blob = await drawSticker({
-      moduleLabel: "M1",
-      idText: m1Id,
-      qrPayload: `${m1Id}|${dateOnly}`,
-      batch,
-      productName,
-      variant,
-    });
+    if (opts.includeModules) {
+      const labelMap: ("M1" | "M2" | "M3")[] = ["M1", "M2", "M3"];
+      const needCount = modulesEnabled.m3 ? 3 : modulesEnabled.m2 ? 2 : 1;
+      for (let i = 0; i < needCount; i++) {
+        const mid = moduleIds[i];
+        const blob = await drawSticker({
+          moduleLabel: labelMap[i],
+          idText: mid,
+          qrPayload: `${mid}|${dateOnly}`,
+          batch,
+          productName,
+          variant,
+        });
+        const name = `sticker_${labelMap[i]}_${mid}.png`;
+        const url = URL.createObjectURL(blob);
+        if (i === 0) nextFiles.m1 = { url, name } as any;
+        if (i === 1) nextFiles.m2 = { url, name } as any;
+        if (i === 2) nextFiles.m3 = { url, name } as any;
+      }
+    }
 
-    const m2Blob = await drawSticker({
-      moduleLabel: "M2",
-      idText: m2Id,
-      qrPayload: `${m2Id}|${dateOnly}`,
-      batch,
-      productName,
-      variant,
-    });
-
-    const masterName = `sticker_Master_${pack}.png`;
-    const m1Name = `sticker_M1_${m1Id}.png`;
-    const m2Name = `sticker_M2_${m2Id}.png`;
-
-    const masterUrl = URL.createObjectURL(masterBlob);
-    const m1Url = URL.createObjectURL(m1Blob);
-    const m2Url = URL.createObjectURL(m2Blob);
+    if (opts.includeMaster) {
+      const masterBlob = await drawSticker({
+        moduleLabel: null,
+        idText: pack,
+        qrPayload: `${pack}|${dateOnly}`,
+        batch,
+        productName,
+        variant,
+      });
+      const masterName = `sticker_Master_${pack}.png`;
+      const masterUrl = URL.createObjectURL(masterBlob);
+      nextFiles.master = { url: masterUrl, name: masterName } as any;
+    }
 
     setStickerFiles((prev) => {
-      if (prev.master?.url) URL.revokeObjectURL(prev.master.url);
-      if (prev.m1?.url) URL.revokeObjectURL(prev.m1.url);
-      if (prev.m2?.url) URL.revokeObjectURL(prev.m2.url);
-      return {
-        master: { url: masterUrl, name: masterName },
-        m1: { url: m1Url, name: m1Name },
-        m2: { url: m2Url, name: m2Name },
-      };
+      if (prev.master?.url && nextFiles.master) URL.revokeObjectURL(prev.master.url);
+      if (prev.m1?.url && nextFiles.m1) URL.revokeObjectURL(prev.m1.url);
+      if (prev.m2?.url && nextFiles.m2) URL.revokeObjectURL(prev.m2.url);
+      if (prev.m3?.url && nextFiles.m3) URL.revokeObjectURL(prev.m3.url);
+      return nextFiles;
     });
 
     toast.success("Stickers generated");
@@ -734,7 +744,7 @@ function DashboardInner() {
               </Button>
             </div>
           </div>
-          <div className="md:col-span-3">
+          <div className="md:col-span-3 flex flex-col justify-end">
             <label className="text-sm font-medium">Operator</label>
             <Input
               value={operator}
@@ -828,8 +838,8 @@ function DashboardInner() {
           <Button variant="outline" onClick={handleSaveOnly} disabled={loading}>
             Save Without Codes
           </Button>
-          <Button variant="outline" onClick={generateStickers} disabled={loading}>
-            Generate Stickers
+          <Button variant="outline" onClick={() => generateStickerPreviews({ includeModules: true, includeMaster: false })} disabled={loading}>
+            Modules Only
           </Button>
           <Button variant="outline" onClick={clearAll}>
             Clear
@@ -839,8 +849,8 @@ function DashboardInner() {
           </div>
         </section>
 
-        {(stickerFiles.m1 || stickerFiles.m2 || stickerFiles.master) && (
-          <section className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+        {(stickerFiles.m1 || stickerFiles.m2 || stickerFiles.m3 || stickerFiles.master) && (
+          <section className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-6">
             {stickerFiles.m1 && (
               <figure className="border rounded p-3 bg-white shadow-sm">
                 <img src={stickerFiles.m1.url} alt={stickerFiles.m1.name} className="mx-auto h-auto max-w-full object-contain" />
@@ -858,6 +868,16 @@ function DashboardInner() {
                 <div className="mt-2 flex justify-center gap-2">
                   <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m2!.name, stickerFiles.m2!.url)}>Print</Button>
                   <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m2!.name, stickerFiles.m2!.url)}>Download</Button>
+                </div>
+              </figure>
+            )}
+            {stickerFiles.m3 && (
+              <figure className="border rounded p-3 bg-white shadow-sm">
+                <img src={stickerFiles.m3.url} alt={stickerFiles.m3.name} className="mx-auto h-auto max-w-full object-contain" />
+                <figcaption className="mt-2 text-center text-xs break-all">{stickerFiles.m3.name}</figcaption>
+                <div className="mt-2 flex justify-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => printStickerBlob(stickerFiles.m3!.name, stickerFiles.m3!.url)}>Print</Button>
+                  <Button variant="outline" size="sm" onClick={() => downloadStickerBlob(stickerFiles.m3!.name, stickerFiles.m3!.url)}>Download</Button>
                 </div>
               </figure>
             )}
