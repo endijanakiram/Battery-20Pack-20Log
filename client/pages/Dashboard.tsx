@@ -410,6 +410,185 @@ function DashboardInner() {
     setLastFiles({});
   }
 
+  function ddmmyyyy(d: Date) {
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = String(d.getFullYear());
+    return `${dd}-${mm}-${yyyy}`;
+  }
+
+  async function renderBarcodeCanvas(text: string, width: number, height: number) {
+    const c = document.createElement("canvas");
+    c.width = width;
+    c.height = height;
+    JsBarcode(c, text, {
+      format: "CODE128",
+      displayValue: false,
+      margin: 8,
+      width: 2,
+      height: height - 8,
+    } as any);
+    return c;
+  }
+
+  async function renderQrCanvas(payload: string, size: number) {
+    const c = document.createElement("canvas");
+    c.width = size;
+    c.height = size;
+    await QRCode.toCanvas(c, payload, {
+      errorCorrectionLevel: "M",
+      margin: 1,
+      width: size,
+      color: { dark: "#000000", light: "#FFFFFF" },
+    });
+    return c;
+  }
+
+  async function drawSticker(opts: {
+    moduleLabel?: "M1" | "M2" | null;
+    serials: string[];
+    packSerial: string;
+    batch: string;
+    productName: string;
+    variant: "Classic" | "Pro" | "Max";
+  }): Promise<Blob> {
+    await (document as any).fonts?.ready;
+    const W = 402;
+    const H = 201;
+    const canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext("2d")!;
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = "#000000";
+    ctx.font = "bold 18px Arial, Roboto, sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("RIVOT MOTORS", 8, 24);
+
+    ctx.font = "11px Arial, Roboto, sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillText(`BATCH NO: ${opts.batch}`, 394, 20);
+
+    const qrSize = 110;
+    const qrX = 284;
+    const qrY = 24;
+    const qrPayload = JSON.stringify(
+      opts.moduleLabel
+        ? {
+            type: "MODULE",
+            module: opts.moduleLabel,
+            product: opts.productName,
+            variant: opts.variant.toUpperCase(),
+            batch: opts.batch,
+            serials: opts.serials,
+            date: ddmmyyyy(new Date()),
+          }
+        : {
+            type: "MASTER",
+            product: opts.productName,
+            variant: opts.variant.toUpperCase(),
+            batch: opts.batch,
+            serials: opts.serials,
+            date: ddmmyyyy(new Date()),
+          },
+    );
+    const qrCanvas = await renderQrCanvas(qrPayload, qrSize);
+    ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
+
+    const barW = 210;
+    const barH = 40;
+    const barX = 8;
+    const barY = 38;
+    const barCanvas = await renderBarcodeCanvas(opts.packSerial, barW, barH);
+    ctx.drawImage(barCanvas, barX, barY, barW, barH);
+
+    ctx.fillStyle = "#000000";
+    ctx.font = "12px Arial, Roboto, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(opts.packSerial, barX + Math.floor(barW / 2), barY + barH + 14);
+
+    ctx.fillStyle = "#666666";
+    ctx.font = "11px Arial, Roboto, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(ddmmyyyy(new Date()), 8, 106);
+
+    ctx.fillStyle = "#000000";
+    ctx.font = "bold 12px Arial, Roboto, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`${opts.productName}-${opts.variant.toUpperCase()}`, barX + Math.floor(barW / 2), 126);
+
+    if (opts.moduleLabel) {
+      ctx.font = "bold 36px Arial, Roboto, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(opts.moduleLabel, 8, 160);
+    }
+
+    return await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
+  }
+
+  async function generateStickers() {
+    const pack = packSerial.trim();
+    if (!pack) {
+      toast.error("Enter pack serial");
+      return;
+    }
+    const arr1 = normLines(m1);
+    const arr2 = modulesEnabled.m2 ? normLines(m2) : [];
+    let m1Arr = arr1;
+    let m2Arr = arr2;
+    if (modulesEnabled.m2 && m1Arr.length > 0 && m2Arr.length === 0) {
+      const half = Math.ceil(m1Arr.length / 2);
+      m2Arr = m1Arr.slice(half);
+      m1Arr = m1Arr.slice(0, half);
+    }
+    if (m1Arr.length === 0 && m2Arr.length === 0) {
+      toast.error("Provide cell serials in Module 1/2 inputs");
+      return;
+    }
+
+    const allSerials = [...m1Arr, ...m2Arr];
+    const batch = cfgBatch;
+    const zip = new JSZip();
+
+    const masterBlob = await drawSticker({
+      moduleLabel: null,
+      serials: allSerials,
+      packSerial: pack,
+      batch,
+      productName,
+      variant,
+    });
+    zip.file(`sticker_master_${pack}.png`, masterBlob);
+
+    const m1Blob = await drawSticker({
+      moduleLabel: "M1",
+      serials: m1Arr,
+      packSerial: pack,
+      batch,
+      productName,
+      variant,
+    });
+    zip.file(`sticker_M1_${pack}.png`, m1Blob);
+
+    const m2Blob = await drawSticker({
+      moduleLabel: "M2",
+      serials: m2Arr,
+      packSerial: pack,
+      batch,
+      productName,
+      variant,
+    });
+    zip.file(`sticker_M2_${pack}.png`, m2Blob);
+
+    const content = await zip.generateAsync({ type: "blob" });
+    saveAs(content, `stickers_${pack}.zip`);
+    toast.success("Stickers generated");
+  }
+
   function downloadImage(url: string) {
     fetch(url)
       .then((r) => r.blob())
