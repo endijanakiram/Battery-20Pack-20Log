@@ -129,12 +129,12 @@ export const generatePack: RequestHandler = async (req, res) => {
     (m1.length > 0 ? 1 : 0) + (m2.length > 0 ? 1 : 0) + (m3.length > 0 ? 1 : 0);
   const desiredCount = providedCount > 0 ? providedCount : requiredCount;
 
-  if (desiredCount >= 1 && m1.length === 0)
-    return res.status(400).json({ error: "Module 1 cell list is required" });
-  if (desiredCount >= 2 && m2.length === 0)
-    return res.status(400).json({ error: "Module 2 cell list is required" });
-  if (desiredCount >= 3 && m3.length === 0)
-    return res.status(400).json({ error: "Module 3 cell list is required" });
+  // if (desiredCount >= 1 && m1.length === 0)
+  //   return res.status(400).json({ error: "Module 1 cell list is required" });
+  // if (desiredCount >= 2 && m2.length === 0)
+  //   return res.status(400).json({ error: "Module 2 cell list is required" });
+  // if (desiredCount >= 3 && m3.length === 0)
+  //   return res.status(400).json({ error: "Module 3 cell list is required" });
 
   // Check duplicates inside each module
   const dup1 = duplicatesInArray(m1);
@@ -395,12 +395,12 @@ export const savePackOnly: RequestHandler = (req, res) => {
     (m1.length > 0 ? 1 : 0) + (m2.length > 0 ? 1 : 0) + (m3.length > 0 ? 1 : 0);
   const desiredCount = providedCount > 0 ? providedCount : requiredCount;
 
-  if (desiredCount >= 1 && m1.length === 0)
-    return res.status(400).json({ error: "Module 1 cell list is required" });
-  if (desiredCount >= 2 && m2.length === 0)
-    return res.status(400).json({ error: "Module 2 cell list is required" });
-  if (desiredCount >= 3 && m3.length === 0)
-    return res.status(400).json({ error: "Module 3 cell list is required" });
+  // if (desiredCount >= 1 && m1.length === 0)
+  //   return res.status(400).json({ error: "Module 1 cell list is required" });
+  // if (desiredCount >= 2 && m2.length === 0)
+  //   return res.status(400).json({ error: "Module 2 cell list is required" });
+  // if (desiredCount >= 3 && m3.length === 0)
+  //   return res.status(400).json({ error: "Module 3 cell list is required" });
 
   // Check duplicates inside each module
   const dup1 = duplicatesInArray(m1);
