@@ -72,6 +72,9 @@ export function createServer() {
   app.post("/api/packs/generate", generatePack);
 
   app.post("/api/packs/master-only", generateMasterOnly);
+  app.post("/api/packs/modules-only", (req, res, next) =>
+    import("./routes/packs").then((m) => m.generateModulesOnly(req, res, next)),
+  );
 
   app.post("/api/packs/save-only", (req, res, next) =>
     import("./routes/packs").then((m) => m.savePackOnly(req, res, next)),
