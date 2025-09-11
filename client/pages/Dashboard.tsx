@@ -534,9 +534,8 @@ function DashboardInner() {
     }
 
     const createdISO: string = doc.created_at;
-    const dateOnly = new Date(createdISO).toISOString().slice(0, 10); // YYYY-MM-DD for payload
+    const dateOnly = new Date(createdISO).toISOString().slice(0, 10);
     const batch = cfgBatch;
-    const zip = new JSZip();
 
     const masterBlob = await drawSticker({
       moduleLabel: null,
@@ -546,8 +545,6 @@ function DashboardInner() {
       productName,
       variant,
     });
-    zip.file(`sticker_master_${pack}.png`, masterBlob);
-
     const m1Id = moduleIds[0];
     const m2Id = moduleIds[1];
 
@@ -559,7 +556,6 @@ function DashboardInner() {
       productName,
       variant,
     });
-    zip.file(`sticker_M1_${pack}.png`, m1Blob);
 
     const m2Blob = await drawSticker({
       moduleLabel: "M2",
@@ -569,10 +565,26 @@ function DashboardInner() {
       productName,
       variant,
     });
-    zip.file(`sticker_M2_${pack}.png`, m2Blob);
 
-    const content = await zip.generateAsync({ type: "blob" });
-    saveAs(content, `stickers_${pack}.zip`);
+    const masterName = `sticker_Master_${pack}.png`;
+    const m1Name = `sticker_M1_${m1Id}.png`;
+    const m2Name = `sticker_M2_${m2Id}.png`;
+
+    const masterUrl = URL.createObjectURL(masterBlob);
+    const m1Url = URL.createObjectURL(m1Blob);
+    const m2Url = URL.createObjectURL(m2Blob);
+
+    setStickerFiles((prev) => {
+      if (prev.master?.url) URL.revokeObjectURL(prev.master.url);
+      if (prev.m1?.url) URL.revokeObjectURL(prev.m1.url);
+      if (prev.m2?.url) URL.revokeObjectURL(prev.m2.url);
+      return {
+        master: { url: masterUrl, name: masterName },
+        m1: { url: m1Url, name: m1Name },
+        m2: { url: m2Url, name: m2Name },
+      };
+    });
+
     toast.success("Stickers generated");
   }
 
