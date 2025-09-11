@@ -275,7 +275,7 @@ function DashboardInner() {
         packs: { ...prev.packs, [data.pack.pack_serial]: data.pack },
       }));
       toast.success("Generated pack and codes");
-      await generateStickerPreviews({ includeModules: true, includeMaster: true });
+      await generateStickerPreviews({ includeModules: true, includeMaster: true, packSerial: data.pack.pack_serial, createdAtISO: data.pack.created_at, moduleIds: Object.keys(data.pack.modules || {}) });
       fetchNext();
     } catch (e: any) {
       toast.error(e?.message || "Error generating pack");
