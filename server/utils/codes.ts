@@ -36,7 +36,7 @@ async function generateBarcodePng(
     const u = new URL("https://bwipjs-api.metafloor.com/");
     u.searchParams.set("bcid", "code128");
     u.searchParams.set("text", payload);
-    u.searchParams.set("scale", "3");
+    u.searchParams.set("scale", "2");
     u.searchParams.set("includetext", "true");
     u.searchParams.set("textxalign", "center");
     u.searchParams.set("alttext", humanText);
@@ -77,7 +77,7 @@ async function generateQrPng(
     u.searchParams.set("bcid", "qrcode");
     u.searchParams.set("text", payload);
     u.searchParams.set("eclevel", "M");
-    u.searchParams.set("scale", "3");
+    u.searchParams.set("scale", "2");
     u.searchParams.set("backgroundcolor", "FFFFFF");
     u.searchParams.set("paddingwidth", String(margin));
     u.searchParams.set("paddingheight", String(margin));
