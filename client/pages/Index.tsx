@@ -78,6 +78,7 @@ export default function Index() {
         setModulesEnabled(j.modulesEnabled);
         if ((j as any).batch) setCfgBatch((j as any).batch);
         if ((j as any).productName) setProductName((j as any).productName);
+        if ((j as any).variant) setVariant((j as any).variant);
       }
     } catch {}
   }
