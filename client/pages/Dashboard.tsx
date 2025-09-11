@@ -150,6 +150,25 @@ function DashboardInner() {
     } catch {}
   }
 
+  async function advanceToNextSerial() {
+    try {
+      const r = await fetch("/api/next-pack-serial");
+      if (r.ok) {
+        const j = await r.json();
+        setPackSerial(j.next);
+      }
+    } catch {}
+    setM1("");
+    setM2("");
+    setM3("");
+    setOperator("");
+    setSerialExists(false);
+    setDupM1(new Set());
+    setDupM2(new Set());
+    setDupM3(new Set());
+    setErrorInfo("");
+  }
+
   function normLines(text: string) {
     return text
       .split(/\r?\n/)
@@ -276,7 +295,7 @@ function DashboardInner() {
       }));
       toast.success("Generated pack and codes");
       await generateStickerPreviews({ includeModules: true, includeMaster: true, packSerial: data.pack.pack_serial, createdAtISO: data.pack.created_at, moduleIds: Object.keys(data.pack.modules || {}) });
-      fetchNext();
+      await advanceToNextSerial();
     } catch (e: any) {
       toast.error(e?.message || "Error generating pack");
     } finally {
@@ -360,6 +379,7 @@ function DashboardInner() {
       setLastFiles((lf) => ({ ...lf, master: j.master }));
       await generateStickerPreviews({ includeModules: false, includeMaster: true, packSerial: j.pack.pack_serial, createdAtISO: j.pack.created_at, moduleIds: Object.keys(j.pack.modules || {}) });
       toast.success("Generated master code");
+      await advanceToNextSerial();
     } catch (e: any) {
       toast.error(e?.message || "Error generating master code");
     } finally {
@@ -485,6 +505,17 @@ function DashboardInner() {
     setM3("");
     setSerialExists(false);
     setLastFiles({});
+    setErrorInfo("");
+    setDupM1(new Set());
+    setDupM2(new Set());
+    setDupM3(new Set());
+    setStickerFiles((prev) => {
+      if (prev.master?.url) URL.revokeObjectURL(prev.master.url);
+      if (prev.m1?.url) URL.revokeObjectURL(prev.m1.url);
+      if (prev.m2?.url) URL.revokeObjectURL(prev.m2.url);
+      if (prev.m3?.url) URL.revokeObjectURL(prev.m3.url);
+      return {} as any;
+    });
   }
 
   function ddmmyyyy(d: Date) {
@@ -727,6 +758,7 @@ function DashboardInner() {
       setLastFiles((lf) => ({ ...lf, modules: j.modules }));
       await generateStickerPreviews({ includeModules: true, includeMaster: false, packSerial: j.pack.pack_serial, createdAtISO: j.pack.created_at, moduleIds: Object.keys(j.pack.modules || {}) });
       toast.success("Generated module codes");
+      await advanceToNextSerial();
     } catch (e: any) {
       toast.error(e?.message || "Error generating modules");
     } finally {
