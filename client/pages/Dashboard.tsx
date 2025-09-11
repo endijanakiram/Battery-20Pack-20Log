@@ -783,7 +783,7 @@ function DashboardInner() {
 
         <section className="mt-4">
           <Button variant="outline" onClick={generateStickers} disabled={loading}>
-            Generate Stickers (PNG ZIP)
+            Generate Stickers
           </Button>
         </section>
 
