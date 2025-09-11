@@ -504,6 +504,19 @@ export default function Index() {
                 QR
               </button>
             </div>
+            <div className="mt-2 flex rounded-md border p-1">
+              <button
+                className={
+                  "flex-1 rounded px-3 py-2 text-sm " +
+                  (codeType === "sticker"
+                    ? "bg-emerald-600 text-white"
+                    : "hover:bg-slate-50")
+                }
+                onClick={() => setCodeType("sticker")}
+              >
+                Sticker 50×25 (default)
+              </button>
+            </div>
           </div>
         </section>
 
